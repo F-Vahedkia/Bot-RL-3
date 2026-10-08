@@ -1,0 +1,1292 @@
+# Date Reviewed:
+#    1405/05/19-قبلاً انجام شده است
+
+version: 1.0.0
+# === 1 =============================================================
+project:
+  name: Bot-RL-3
+  broker_timezone: "Europe/Athens"
+  base_currency: USD
+  random_seed: 42
+  enable_env_override: true
+  
+# === 2 ============================================================= complete
+config_layers:
+  extends:
+  - f01_config/extend_config.yaml      # کمترین اهمیت- کمتر از همین فایل کانفیگ 
+  # - f01_config/extend_config_2.yaml  # اهمیتش از بالایی بیشتر است 
+  bases:
+  - f01_config/base_config.yaml        #اهمیت این فایل بیشتراز extendsهااست.
+                                      # اماازهمین فایل کانفیگ(config.yaml) و از overlaysها کمتر است 
+  # - f01_config/base_config_2.yaml    # اهمیت این فایل از بالایی ها بیشتر است 
+  # (==> THIS CONFIG FILE)
+  overlays:
+  - f01_config/symbol_specs.yaml       # بیشترین اهمیت- بیش از حتی همین فایل کانفیگ(config.yaml) 
+  # - f01_config/symbol_specs_22.yaml
+  # - f01_config/symbol_specs_33.yaml
+
+# === 3 ============================================================= comptlete
+# ----- Used: main.py
+logging:
+  level: DEBUG          # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s | %(levelname)-6s | %(filename)-28s | %(lineno)-4d : %(funcName)-24s | %(message)s"
+  datefmt: "%Y-%m-%d %H:%M:%S"
+  file_enabled: true
+  file: "f00_logs/Bot-RL-3.log"
+
+# === 4 ============================================================= 
+paths:
+  root_dir: .
+  config_versions_dir: f01_config/versions  ####
+  
+  data_dir:      f03_data
+  raw_dir:       f03_data/raw
+  processed_dir: f03_data/processed
+  news_dir:      f03_data/news
+  cache_dir:     f03_data/cache  ####
+
+  feature_dir: f04_features/features_dfs
+
+  models_dir: f13_models  ####
+  models:
+    production_dir:  f13_models/production
+    staging_dir:     f13_models/staging
+    checkpoints_dir: f13_models/checkpoints
+    experiments_dir: f13_models/experiments
+  
+  logs_dir:    _logs  ####
+  reports_dir: _reports  ####
+  tmp_dir:     _tmp   ####
+
+# === 5 ============================================================= comptlete
+connection:   # ----- Used in: mt5_connector.py
+  mt5_credentials:   # ----- Used in: mt5_connector.py / _read_credentials_from_config()
+    login: 00000000
+    password: Password
+    server: Server
+    terminal_path: "C:/Program Files/Alpari MT5/terminal64.exe"
+
+  initialize_retry:   # ----- Used in: mt5_connector.py / _read_options_from_config()
+    max_retries: 5  # int
+    retry_delay: 5.0  # float
+    backoff_multiplier: 1.0  # float
+    auto_select_symbols: True  # bool
+    check_trade_allowed: False  # bool
+    symbol_activation_timeout: 0.0  # float
+    ensure_on_each_call: True  # bool
+
+# === 6 =============================================================
+download_defaults:   # ----- Used in: mt5_data_loader.py / class MT5DataLoader / __init__()
+  auto_download: true
+  symbols:   # ----- Used in: mt5_connector.py / _auto_select_symbols()
+  # - XAUUSD
+  # - EURUSD
+  - BITCOIN
+  # - XAGUSD
+  # - GBPUSD
+  # - USDJPY
+  # - USDCHF
+  # - USDCAD
+  # - AUDUSD
+  # - NZDUSD
+  timeframes:
+  - M1
+  # - M2
+  # - M4
+  # - M5
+  # - M10
+  # - M20
+  # - M30
+  # - H1
+  # - H4
+  # - D1
+  # - W1
+  # ----- below 4 keys, used in: mt5_data_loader/class DownloadPlan
+  lookback_bars: 20000              # در صورتیکه صفر یا منفی باشد، به حساب نمی آید 
+  broker_date_from: 2026-09-16 00:00:00+03:00  # در صورتیکه هر دو برابر باشند یا date_from بیشتر باشد به حساب نمی آیند 
+  broker_date_to:   2026-09-16 21:59:00+03:00  # مقدار date_to میتواند NOW یا now هم اختیار کند 
+  result_timezone: "UTC"
+  range_policy: count                    # میتواند یکی از رشته مقادیر min, max, date, count را داشته باشد 
+
+  batch_size: 50                                   # NOT USED
+  save_format: csv   # can be: csv | parquet   # Used many times in different files
+  # save_at_utc_time: true    (بهتر است حذف بشود)   # Used in: mt5_data_loader/class MT5DataLoader_batch/__init__()
+
+# === 7 =============================================================
+features:
+  save_format: parquet  # can be: csv | parquet
+  # ----------------------------------------
+  symbols:
+    # -----------------------
+    COMMON:
+      symbols: [BITCOIN, EURUSD, XAUUSD]
+
+      indicators:
+        - sma(column='close',period=8)@M1      # Simple Moving Average
+        - sma(column='close',period=4)@M2      # Simple Moving Average
+
+        - wma(column='close',period=6)@M1      # Weighted Moving Average
+        - wma(column='close',period=6)@M2      # Weighted Moving Average
+
+        - ema(column='close',period=6)@M1      # Exponential Moving Average
+        - ema(column='close',period=6)@M2      # Exponential Moving Average
+
+        - roc(column='close',period=4)@M1      # Rate of Change
+        - roc(column='close',period=4)@M2      # Rate of Change
+
+        - rsi(period=6)@M1            # Relative Strength Index
+        - rsi(period=6)@M2            # Relative Strength Index
+
+        - true_range@M1                # True Range
+        - true_range@M2                # True Range
+
+        - atr(period=6)@M1            # Average True Range
+        - atr(period=6)@M2            # Average True Range
+
+        - macd(fast=12,slow=26,signal=9)@M1      # MACD
+        - macd(fast=12,slow=26,signal=9)@M2      # MACD
+
+        - bollinger_bands(close,8,2)@M1         # Bollinger Bands
+        - bollinger_bands(close,8,2)@M2         # Bollinger Bands
+
+        - keltner_channel(close_col='close', n=10, m=2)@M1    # Keltner Channel
+        - keltner_channel(close_col='close', n=10, m=2)@M2    # Keltner Channel
+
+        - stochastic(k_period=14, d_period=3, slowing=3)@M1   # Stochastic
+        - stochastic(k_period=14, d_period=3, slowing=3)@M2   # Stochastic
+
+        - cci(period=10)@M1          # Commodity Channel Index
+        - cci(period=10)@M2          # Commodity Channel Index
+
+        - mfi(period=8)@M1          # Money Flow Index
+        - mfi(period=8)@M2          # Money Flow Index
+
+        - obv@M1                     # On Balance Volume
+        - obv@M2                     # On Balance Volume
+
+        - williams_r(period=7)@M1   # Williams %R
+        - williams_r(period=9)@M2   # Williams %R
+
+        - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M1  # Parabolic SAR
+        - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M2  # Parabolic SAR
+
+        - heikin_ashi@M1                              # Heikin Ashi
+        - heikin_ashi@M2                              # Heikin Ashi
+
+        - supertrend(period=10, multiplier=3)@M1      # Supertrend
+        - supertrend(period=10, multiplier=3)@M2      # Supertrend
+
+        - aroon(period=25)@M1                   # Aroon
+        - aroon(period=25)@M2                   # Aroon
+
+        - dema(column='close', period=10)@M1    # Double Exponential Moving Average
+        - dema(column='close', period=10)@M2    # Double Exponential Moving Average
+
+        - tema(column='close', period=10)@M1    # Triple Exponential Moving Average
+        - tema(column='close', period=10)@M2    # Triple Exponential Moving Average
+
+        - kama(column='close', period=20)@M1    # Kaufman's Adaptive Moving Average
+        - kama(column='close', period=20)@M2    # Kaufman's Adaptive Moving Average
+
+        - hma(column='close', period=20)@M1     # Hull Moving Average
+        - hma(column='close', period=20)@M2     # Hull Moving Average
+
+    # -----------------------
+    XAUUSD:
+      # candles: [H1, H4, D1]
+      indicators:
+        # - dema(column='close', period=10)@M1    # Double Exponential Moving Average
+        # - dema(column='close', period=10)@M2    # Double Exponential Moving Average
+
+        # - tema(column='close', period=10)@M1    # Triple Exponential Moving Average
+        # - tema(column='close', period=10)@M2    # Triple Exponential Moving Average
+
+        # - kama(column='close', period=20)@M1    # Kaufman's Adaptive Moving Average
+        # - kama(column='close', period=20)@M2    # Kaufman's Adaptive Moving Average
+    # -----------------------
+    EURUSD:
+      # candles: [M5, M15]
+      indicators:
+        # - sma(column='close',period=8)@M1      # Simple Moving Average
+        # - sma(column='close',period=4)@M2      # Simple Moving Average
+
+        # - wma(column='close',period=6)@M1      # Weighted Moving Average
+        # - wma(column='close',period=6)@M2      # Weighted Moving Average
+
+        # - ema(column='close',period=6)@M1      # Exponential Moving Average
+        # - ema(column='close',period=6)@M2      # Exponential Moving Average
+
+        # - roc(column='close',period=4)@M1      # Rate of Change
+        # - roc(column='close',period=4)@M2      # Rate of Change
+
+        # - rsi(period=6)@M1            # Relative Strength Index
+        # - rsi(period=6)@M2            # Relative Strength Index
+
+        # - true_range@M1                # True Range
+        # - true_range@M2                # True Range
+
+        # - atr(period=6)@M1            # Average True Range
+        # - atr(period=6)@M2            # Average True Range
+
+        # - macd(fast=12,slow=26,signal=9)@M1      # MACD
+        # - macd(fast=12,slow=26,signal=9)@M2      # MACD
+
+        # - bollinger_bands(close,8,2)@M1         # Bollinger Bands
+        # - bollinger_bands(close,8,2)@M2         # Bollinger Bands
+
+        # - keltner_channel(close_col='close', n=10, m=2)@M1    # Keltner Channel
+        # - keltner_channel(close_col='close', n=10, m=2)@M2    # Keltner Channel
+
+        # - stochastic(k_period=14, d_period=3, slowing=3)@M1   # Stochastic
+        # - stochastic(k_period=14, d_period=3, slowing=3)@M2   # Stochastic
+
+        # - cci(period=10)@M1          # Commodity Channel Index
+        # - cci(period=10)@M2          # Commodity Channel Index
+
+        # - mfi(period=8)@M1          # Money Flow Index
+        # - mfi(period=8)@M2          # Money Flow Index
+
+        # - obv@M1                     # On Balance Volume
+        # - obv@M2                     # On Balance Volume
+
+        # - williams_r(period=9)@M1   # Williams %R
+        # - williams_r(period=9)@M2   # Williams %R
+
+        # - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M1  # Parabolic SAR
+        # - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M2  # Parabolic SAR
+
+        # - heikin_ashi@M1                              # Heikin Ashi
+        # - heikin_ashi@M2                              # Heikin Ashi
+
+        # - supertrend(period=10, multiplier=3)@M1      # Supertrend
+        # - supertrend(period=10, multiplier=3)@M2      # Supertrend
+
+        # - aroon(period=25)@M1                   # Aroon
+        # - aroon(period=25)@M2                   # Aroon
+
+        # - dema(column='close', period=10)@M1    # Double Exponential Moving Average
+        # - dema(column='close', period=10)@M2    # Double Exponential Moving Average
+
+        # - tema(column='close', period=10)@M1    # Triple Exponential Moving Average
+        # - tema(column='close', period=10)@M2    # Triple Exponential Moving Average
+
+        # - kama(column='close', period=20)@M1    # Kaufman's Adaptive Moving Average
+        # - kama(column='close', period=20)@M2    # Kaufman's Adaptive Moving Average
+
+        # - hma(column='close', period=20)@M1     # Hull Moving Average
+        # - hma(column='close', period=20)@M2     # Hull Moving Average
+    # -----------------------
+    BITCOIN:
+      # candles: [M1, M2]
+      indicators:
+        # - sma(column='close',period=8)@M1      # Simple Moving Average
+        # - sma(column='close',period=4)@M2      # Simple Moving Average
+
+        # - wma(column='close',period=6)@M1      # Weighted Moving Average
+        # - wma(column='close',period=6)@M2      # Weighted Moving Average
+
+        # - ema(column='close',period=6)@M1      # Exponential Moving Average
+        # - ema(column='close',period=6)@M2      # Exponential Moving Average
+
+        # - roc(column='close',period=4)@M1      # Rate of Change
+        # - roc(column='close',period=4)@M2      # Rate of Change
+
+        # - rsi(period=6)@M1            # Relative Strength Index
+        # - rsi(period=6)@M2            # Relative Strength Index
+
+        # - true_range@M1                # True Range
+        # - true_range@M2                # True Range
+
+        # - atr(period=6)@M1            # Average True Range
+        # - atr(period=6)@M2            # Average True Range
+
+        # - macd(fast=12,slow=26,signal=9)@M1      # MACD
+        # - macd(fast=12,slow=26,signal=9)@M2      # MACD
+
+        # - bollinger_bands(close,8,2)@M1         # Bollinger Bands
+        # - bollinger_bands(close,8,2)@M2         # Bollinger Bands
+
+        # - keltner_channel(close_col='close', n=10, m=2)@M1    # Keltner Channel
+        # - keltner_channel(close_col='close', n=10, m=2)@M2    # Keltner Channel
+
+        # - stochastic(k_period=14, d_period=3, slowing=3)@M1   # Stochastic
+        # - stochastic(k_period=14, d_period=3, slowing=3)@M2   # Stochastic
+
+        # - cci(period=10)@M1          # Commodity Channel Index
+        # - cci(period=10)@M2          # Commodity Channel Index
+
+        # - mfi(period=8)@M1          # Money Flow Index
+        # - mfi(period=8)@M2          # Money Flow Index
+
+        # - obv@M1                     # On Balance Volume
+        # - obv@M2                     # On Balance Volume
+
+        # - williams_r(period=9)@M1   # Williams %R
+        # - williams_r(period=9)@M2   # Williams %R
+
+        # - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M1  # Parabolic SAR
+        # - parabolic_sar(af_start=0.02, af_step=0.02, af_max=0.2)@M2  # Parabolic SAR
+
+        # - heikin_ashi@M1                              # Heikin Ashi
+        # - heikin_ashi@M2                              # Heikin Ashi
+
+        # - supertrend(period=10, multiplier=3)@M1      # Supertrend
+        # - supertrend(period=10, multiplier=3)@M2      # Supertrend
+
+        # - aroon(period=25)@M1                   # Aroon
+        # - aroon(period=25)@M2                   # Aroon
+
+        # - dema(column='close', period=10)@M1    # Double Exponential Moving Average
+        # - dema(column='close', period=10)@M2    # Double Exponential Moving Average
+
+        # - tema(column='close', period=10)@M1    # Triple Exponential Moving Average
+        # - tema(column='close', period=10)@M2    # Triple Exponential Moving Average
+
+        # - kama(column='close', period=20)@M1    # Kaufman's Adaptive Moving Average
+        # - kama(column='close', period=20)@M2    # Kaufman's Adaptive Moving Average
+
+        # - hma(column='close', period=20)@M1     # Hull Moving Average
+        # - hma(column='close', period=20)@M2     # Hull Moving Average
+  # ----------------------------------------
+  candles:
+    required:
+      XAUUSD:
+        M1: 20
+        M5: 4
+        H1: 4
+      EURUSD:
+        M5: 5
+        M10: 10
+      BITCOIN:
+        M1: 10
+        H2: 20
+    namse:
+      - high
+      - low
+      - close
+      - volume
+    normalization:
+      enabled: true
+      price:
+        method: "price_relative"
+        reference: "prev_close"
+      volume:
+        method: "relative"
+        window: 20
+  # ----------------------------------------
+  observation:
+    base_timeframe:
+      mode: union_min        # fixed | feature_min | candle_min | union_min
+      timeframe: null
+    features_whitelist:
+      - sma
+      - wma
+      - ema
+      - roc
+      - rsi
+      - true_range
+      - atr
+      - macd
+      - bollinger_bands
+      - keltner_channel
+
+      - stochastic
+      - cci
+      - mfi
+      - obv
+      - williams_r
+      - parabolic_sar
+      - heikin_ashi
+      - supertrend
+      - aroon
+      - dema
+
+      - tema
+      - kama
+      - hma
+    
+    features_blacklist:
+    - qc_*
+
+    shift_features_by: 1  # Used at observation_B_builder
+    drop_na_head: true    # Used at observation_B_builder
+  # ----------------------------------------
+  time_features:
+    enabled: true
+    symbols:
+      XAUUSD: [
+        minute, hour, day_of_week, day_of_month, day_of_year, week_of_year, month, quarter,
+        session_asia, session_london, session_newyork,
+        is_weekend, is_month_start, is_month_end, is_quarter_start, is_quarter_end,
+        sin_hour, cos_hour, sin_day_of_week, cos_day_of_week, sin_month, cos_month,
+        market_open_flag, market_close_flag, is_new_day,
+       ]
+      EURUSD: [
+        minute, hour, day_of_week, day_of_month, day_of_year, week_of_year, month, quarter,
+        session_asia, session_london, session_newyork,
+        is_weekend, is_month_start, is_month_end, is_quarter_start, is_quarter_end,
+        sin_hour, cos_hour, sin_day_of_week, cos_day_of_week, sin_month, cos_month,
+        market_open_flag, market_close_flag, is_new_day,
+       ]
+      BITCOIN: [
+        minute, hour, day_of_week, day_of_month, day_of_year, week_of_year, month, quarter,
+        session_asia, session_london, session_newyork,
+        is_weekend, is_month_start, is_month_end, is_quarter_start, is_quarter_end,
+        sin_hour, cos_hour, sin_day_of_week, cos_day_of_week, sin_month, cos_month,
+        market_open_flag, market_close_flag, is_new_day,
+      ]
+    add_hour_of_day: true     # به نظر میرسد که دیگر نیازی به این سطر نباشد
+    add_day_of_week: true     # به نظر میرسد که دیگر نیازی به این سطر نباشد
+    add_session_flags: true     # به نظر میرسد که دیگر نیازی به این سطر نباشد
+    normalize_time: true     # به نظر میرسد که دیگر نیازی به این سطر نباشد
+
+  # representation: # ===> NOT USED
+  #   default: "binary"
+  #   mapping: ""
+
+  # pipeline: # ===> NOT USED
+  #   use_default_set: true
+  #   use_indicators: true
+  #   use_fibonacci: true           # یه نظر می آید که نیازی به این کلید نیست. چونکه در بخش مربوطه کلید enabled داریم
+  #   use_support_resistance: true  # یه نظر می آید که نیازی به این کلید نیست. چونکه در بخش مربوطه کلید enabled داریم
+  #   use_price_action: true        # یه نظر می آید که نیازی به این کلید نیست. چونکه در بخش مربوطه کلید enabled داریم
+  #   use_volatility: true
+
+
+  fibonacci:
+    enabled: true
+    swing_window_bars: 200
+    cluster_merge_pips: 20
+    order_planner:
+      use_atr_for_sl_tp: true
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      atr_length: 14
+      partial_take_profits:
+        enabled: true
+        levels_r_multiple:
+        - 1.0
+        - 2.0
+        portions:
+        - 0.5
+        - 0.5
+    retracement_ratios:    # Used in fibonacci.py,
+      - 0.236              # for variable: DEFAULT_RETR_RATIOS
+      - 0.382              #
+      - 0.500              #
+      - 0.618              #
+      - 0.786              #
+      - 0.886              #
+    extension_ratios:   # Used in fibonacci.py,
+      - 1.272           # for variable: DEFAULT_EXT_RATIOS
+      - 1.618           #
+      - 2.0             #
+      - 2.618           #
+      - 3.618           #
+    golden_zone:
+      ratios:
+        - 0.382
+        - 0.618
+    cluster:
+      min_members: 2
+      min_score: 5.0
+      leg_age_decay: 0.9
+    leg_selection:
+      max_legs_per_tf: 3
+      lookback_bars: 2000
+      prefer_body: false
+      prominence_min: null
+    rsi:
+      length: 14
+      overbought: 70
+      oversold: 30
+    tf_overrides:
+      M15:
+        leg_selection:
+          max_legs_per_tf: 5
+      H1:
+        leg_selection:
+          max_legs_per_tf: 4
+      H4:
+        leg_selection:
+          max_legs_per_tf: 3
+      D1:
+        leg_selection:
+          max_legs_per_tf: 2
+      W1:
+        leg_selection:
+          max_legs_per_tf: 1
+    symbol_overrides:
+      XAUUSD_i:
+        rsi:
+          overbought: 72
+          oversold: 28
+      EURUSD: {}
+      GBPUSD: {}
+      USDJPY: {}
+      USDCHF: {}
+      USDCAD: {}
+      AUDUSD: {}
+      NZDUSD: {}
+    harmonics:
+      enabled: false
+      patterns:
+      - AB=CD
+      ratio_tolerance: 0.05
+    caching:
+      enabled: false
+      ttl_bars: 500
+  
+  support_resistance:
+    enabled: true
+    lookback_bars: 1500
+    cluster_tolerance_pips: 15
+    zigzag:               # ===== Used by feature_registry.py / zigzag_mtf_adapter() ===== start
+      enabled: true       #
+      tf: null            #     # یعنی: پیش‌فرض = base_timeframe
+      depth: 12           #
+      deviation: 5.0      #
+      backstep: 10        # ===== Used by feature_registry.py / zigzag_mtf_adapter() ===== end
+    sr_advanced:                    # ===== Used by feature_registry.py / _merge_sr_kwargs() ===== start
+      common:                       #
+        atr_window: 14              #
+        max_bars_alive: 5  #3 to 10: It's better be (4 or 5)
+        w_size: 0.5                 #
+        w_age: 0.3                  #
+        w_touch: 0.2                #
+      fvg:                          #
+        lookback: 2                 #
+        min_size_pct_of_atr: 0.35   #
+      supply_demand:                #
+        base_len: 3                 #
+        base_atr_max: 1.0           #
+        impulse_atr_min: 0.8        #
+      order_block:                  #
+        body_atr_min: 0.4           #
+        wick_ratio_max: 1.0         #
+        bos_lookback: 8             #
+      breaker_flip:                 #
+        lookback: 20                #
+        ob_body_atr_min: 0.35       #
+        ob_wick_ratio_max: 1.0      #
+        ob_bos_lookback: 10         #
+      liq_sweep:                    #
+        lookback: 6                 #
+        min_tail_atr: 0.4           #
+      sr_fusion:                    #
+        ema_span: 5                 #
+        age_norm: 6.0               #
+        enter_th: 0.35              #
+        exit_th: 0.25               #
+        cooldown_bars: 3            #
+        min_conf: 0.25              #
+        tie_eps: 0.02               #
+        confirm_col: null           #
+      overrides:                    #
+        XAUUSD_i:                     #
+          H1:                       #
+            supply_demand:          #
+              base_atr_max: 1.0     #
+              impulse_atr_min: 0.8  #
+            sr_fusion:              #
+              enter_th: 0.35        #
+              exit_th: 0.25         # ===== Used by feature_registry.py / _merge_sr_kwargs() ===== end
+  
+  price_action_params:         #===== Used by f04_features/price_action/config_wiring.py
+    anti_lookahead: true       #
+    market_structure:          #   
+      lookback: 3              #
+    regime:                    #
+      atr_window: 14           #
+      width_window: 20         #
+      slope_window: 12         #
+      spike_thr_atr: 1.8       #
+      channel_slope_thr: 0.2   #
+    breakouts:                 #
+      range_window: 20         #
+      min_periods: 10          #
+      confirm_closes: 1        #
+      retest_lookahead: 5      #
+      fail_break_lookahead: 3  #
+    microchannels:             #
+      min_len: 3               #
+      near_extreme_thr: 0.2    #
+    mtf:                       #
+      bias_window_base: 8      #
+      bias_window_higher: 8    #
+      fillna_confluence: 0.5   #
+    confluence:                #
+      weights:                 #
+        structure: 0.25        #
+        zones: 0.25            #
+        imbalance: 0.2         #
+        mtf: 0.1               #
+        extras: 0.2            #
+      strong_entry_threshold: 0.7
+      filter_threshold: 0.35   #===== Used by f04_features/price_action/config_wiring.py
+
+  # ---------------------------------------------
+  # ADVANCED VOLATILITY & SR FEATURES
+  # ---------------------------------------------
+  adr:
+    enabled: true
+    window: 14              # lookback window in days
+    normalize: false        # if true, divide by close price
+    distance_to_open:
+      enabled: true
+      window: 14              # must match adr.window normally
+      use_percent: true       # express distance as % of ADR
+
+  sr_overlap_score:
+    enabled: true
+    anchor: 0.0
+    step: 10                # number of historical legs to inspect
+    n: 5                    # number of SR levels considered
+    tolerance_pct: 0.05     # price proximity tolerance
+    normalize: true         # scale score to [0,1]
+
+# === 8 ============================================================= OK
+data_quality:   # NOT USED
+  defaults:
+    spike_threshold: 0.05      # آستانه پیش‌فرض برای همه نمادها
+    stale_threshold: 0         # تعداد کندل‌های یکسان مجاز (0 = هیچ)
+  symbols:
+    XAUUSD:
+      spike_threshold: 0.05
+      stale_threshold: 0
+    BITCOIN:
+      spike_threshold: 0.05
+      stale_threshold: 0
+    EURUSD:
+      spike_threshold: 0.05
+      stale_threshold: 0
+
+# === new ============================================================ new
+transaction_costs:
+  version: 1
+  account_currency_source: project.base_currency
+
+  simulation:
+    spread:
+      source: historical_bid_ask
+      require_quote: true
+
+    slippage:
+      model: normal_capped
+      mean_pips: 2.0
+      std_pips: 1.0
+      cap_pips: 3.0
+
+    commission:
+      basis: per_lot
+      rate: 7.0
+      currency: USD
+      minimum: 0.0
+
+    additional_fee:
+      basis: per_trade   # per_trade | per_lot
+      value: 0.0
+      currency: USD
+
+  live:
+    spread:
+      source: broker
+    slippage:
+      source: broker   # slippage واقعی از execution/fill بروکر می‌آید.
+      cap_pips: 3.0   # آستانه کنترل است، نه clamp کردن قیمت واقعی.
+      cap_policy: tolerance   # این عدد سقف پذیرش/کنترل است، نه تغییر fill.
+      on_exceed: flag_and_reconcile   # اگر slippage واقعی بیشتر شد:
+    commission:
+      source: broker
+
+  accounting:
+    charge_on_entry: true
+    charge_on_exit: true
+    # Spread/slippage are represented by the fill price. They must not be
+    # subtracted a second time from realized PnL.
+    price_costs_embedded_in_fill: true
+
+  deterministic:
+    seed_source: project.random_seed
+
+
+# === 9 =============================================================
+env:
+  sessions:
+    asia:
+      start_utc: '00:00'
+      end_utc: '08:00'
+    london:
+      start_utc: '08:00'
+      end_utc: '16:00'
+    newyork:
+      start_utc: '13:00'
+      end_utc: '21:00'
+
+  use_ohlc: true
+  use_volume: true
+  use_spread: false
+  reward_mode: pnl
+
+  # RL/Environment observation processing only.
+  # The final feature observation itself still comes from f04_features.
+  observation:
+    window_size: 128
+    clip_values: true
+    clip_range: [-5, 5]
+    normalize: true
+
+  # Gymnasium-facing action spaces.
+  # Symbol action is discrete and matches the current project semantics.
+  # Meta action is kept as a separate continuous vector boundary because
+  # PortfolioDecision contains several continuous allocations.
+  action_space:
+    symbol:
+      type: discrete
+      n: 3
+      actions: [short, hold, long]
+      levels: [-1, 0, 1]
+
+    meta:
+      type: box
+      # The actual shape is derived from the active symbol set.
+      low: 0.0
+      high: 1.0
+      dtype: float32
+
+  termination:
+    max_episode_steps: 5000
+    stop_on_margin_call: true
+    stop_on_max_drawdown_pct: 0.2
+
+  split:
+    ratios:
+      train: 0.7
+      val: 0.15
+      test: 0.15
+    fixed:
+      train:
+        - '2025-08-21'
+        - '2025-08-25'
+      val:
+        - '2025-08-25'
+        - '2025-08-26'
+      test:
+        - '2025-08-26'
+        - '2099-12-31'
+    align:
+      unit: session
+      tz: America/New_York
+      hhmm: '17:00'
+    warmup:
+      mode: auto
+      margin_bars: 32
+    flat_at_boundary: true
+
+  # Data/Feature ownership is intentionally removed from env:
+  # base_tf, timeframes and n_candles_per_tf belong to upstream layers.
+  mode: offline   # or online
+
+# === 10 =============================================================
+risk:
+  risk_per_trade: 0.01
+  max_daily_loss_pct: 0.02
+  max_total_drawdown_pct: 0.2
+  
+  position_sizing:
+    method: fixed_fractional
+    min_lot: 0.01
+    lot_step: 0.01
+    max_lot: 10.0
+    use_atr_for_sl: true
+    sl_atr_mult: 5.5
+    tp_atr_mult: 10.0
+    
+    breakeven:
+      enabled: true
+      at_r_multiple: 1.0
+    trailing:
+      enabled: true
+      type: chandelier
+      atr_period: 22
+      atr_mult: 3.0
+  
+  position_limits:
+    max_open_positions: 1     # used
+    max_positions_per_symbol: 1  # used
+    cooldown_minutes_after_stop: 15
+
+# === 11 =============================================================
+# Notes about parts 9-env, 11-training:
+# 1. f04_features remains the owner of base_tf/timeframes/feature alignment.
+# 2. f07_agents remains the owner of AgentObservation -> Symbol-Agent ->
+#    Meta-Agent -> PortfolioDecision contracts.
+# 3. backend selection changes only the RL integration/provider path.
+# 4. policy names such as MlpPolicy are SB3-specific and therefore are not
+#    part of the common rl block.
+# 5. RLlib uses RLModule/Learner and EnvRunner/ConnectorV2 on its current API
+#    stack; those details remain inside rllib_integration.py.
+
+training:
+  total_timesteps: 2000000
+  eval_freq_steps: 25000
+  checkpoint_interval_steps: 50000
+  max_checkpoints_to_keep: 10
+  resume_if_exists: true
+
+  early_stop:
+    enabled: true
+    metric: eval/sharpe
+    patience_evals: 8
+    min_delta: 0.01
+
+  experiment_name: ppo_baseline_mtf
+
+  rl:
+    # THE SINGLE SWITCH selecting the RL backend.
+    # Allowed values in this architecture: sb3 | rllib
+    backend: sb3
+
+    # Both supported backends use PyTorch and Gymnasium.
+    framework: torch
+    environment_api: gymnasium
+
+    # Keep the algorithm name backend-neutral here.
+    algorithm: PPO
+
+    deterministic_inference: true
+
+    # Backend-independent action semantics.
+    action_codec:
+      symbol:
+        name: discrete_symbol_v1
+        actions: [short, hold, long]
+        levels: [-1, 0, 1]
+        exposure_by_signal:
+          '-1': 0.20
+          '0': 0.0
+          '1': 0.20
+        stop_price_source: context_metadata
+        stop_price_key: proposed_stop_price
+
+      meta:
+        name: mapping_meta_v1
+        stop_policy: inherit_unless_overridden
+
+    # ---------------------------------------------------------------
+    # SB3 + PyTorch + Gymnasium
+    # ---------------------------------------------------------------
+    sb3:
+      policy: MlpPolicy
+      device: auto
+
+      algorithms:
+        PPO:
+          n_steps: 2048
+          batch_size: 256
+          gamma: 0.99
+          gae_lambda: 0.95
+          clip_range: 0.2
+          ent_coef: 0.01
+          vf_coef: 0.5
+          max_grad_norm: 0.5
+          learning_rate: 0.0003
+          target_kl: 0.01
+          n_epochs: 10
+          clip_range_vf: 0.2
+
+        SAC:
+          learning_rate: 0.0003
+          buffer_size: 1000000
+          batch_size: 256
+          gamma: 0.99
+          tau: 0.005
+          ent_coef: auto
+          train_freq: 1
+          gradient_steps: 1
+          learning_starts: 10000
+          target_entropy: auto
+
+        TD3:
+          learning_rate: 0.0003
+          buffer_size: 1000000
+          batch_size: 256
+          gamma: 0.99
+          tau: 0.005
+          train_freq: 1
+          gradient_steps: 1
+          policy_delay: 2
+          noise_sigma: 0.1
+          noise_clip: 0.3
+
+        A2C:
+          n_steps: 5
+          gamma: 0.99
+          ent_coef: 0.0
+          vf_coef: 0.5
+          max_grad_norm: 0.5
+          learning_rate: 0.0007
+
+        DQN:
+          learning_rate: 0.00025
+          buffer_size: 100000
+          batch_size: 128
+          gamma: 0.99
+          train_freq: 1
+          exploration_fraction: 0.1
+          exploration_final_eps: 0.01
+          learning_starts: 50000
+          target_update_interval: 1000
+          tau: 1.0
+
+        DDPG:
+          learning_rate: 0.0003
+          buffer_size: 1000000
+          batch_size: 256
+          gamma: 0.99
+          tau: 0.005
+          train_freq: 1
+          gradient_steps: 1
+          action_noise: normal(0.1)
+          policy_delay: 2
+
+    # ---------------------------------------------------------------
+    # RLlib + PyTorch + Gymnasium
+    # ---------------------------------------------------------------
+    rllib:
+      framework: torch
+      module_id: null
+      checkpoint: null
+      num_env_runners: 0
+
+      algorithms:
+        PPO:
+          training:
+            lr: 0.0003
+            gamma: 0.99
+            lambda_: 0.95
+            clip_param: 0.2
+            entropy_coeff: 0.01
+            vf_loss_coeff: 0.5
+            grad_clip: 0.5
+            num_epochs: 10
+            minibatch_size: 256
+
+          model_config:
+            fcnet_hiddens: [256, 256]
+            fcnet_activation: relu
+
+        DQN:
+          training:
+            lr: 0.00025
+            gamma: 0.99
+
+        SAC:
+          training:
+            lr: 0.0003
+            gamma: 0.99
+
+# === 12 ============================================================
+evaluation:
+  backtest:
+    commissions_per_lot_usd: 7.0   #  در آینده باید این 4 کلید حذف بشوند
+    slippage_pips_mean: 2          #  مصرف کنندگان باید از بخش transaction_costs استفاده کنند.
+    slippage_pips_std: 1           #  
+    reuse_historical_spread: true  #  
+    cross_validation:
+      enabled: true
+      folds: 3
+      method: expanding_window
+      min_trades_per_fold: 30
+  acceptance_gates:
+    sharpe_min: 0.8
+    profit_factor_min: 1.2
+    winrate_min: 0.48
+    max_drawdown_max: 0.12
+    turnover_max_per_day: 80
+    min_trades_total: 200
+
+# === 13 ============================================================
+executor:
+  symbol:
+    - XAUUSD_i
+  lookback_bars: 3 # Used at: f03_data/market_data_engine/mt5_stream_worker.py- class: MT5StreamWorker- _fetch()
+  snapshot_tfs:    # Used at: f03_data/market_data_engine/mt5_stream_worker.py- class: MT5StreamWorker- _fetch()
+    - M1
+    - M5
+    - M30
+    - H1
+    - H4
+    - D1
+    - W1
+
+  live_trading: false
+  order:
+    type: market
+    retry_attempts: 3
+    timeout_sec: 3.0
+    partial_fill_handling: cancel_remaining
+  price_point: 0.1
+  slippage_cap_pips: 3 # در آینده این کلید باید حذف بشود و مصرف کننده ها باید از بخش transaction_costs استفاده کنند.
+  sync_with_env_behaviors: true
+  canary_deployment:
+    enabled: true
+    volume_multiplier: 0.5
+    min_duration_minutes: 60
+    promote_criteria:
+      min_trades: 5
+      min_pnl_usd: 0.0
+      max_dd_live: 0.03
+  rollback:
+    on_breach: true
+  latency_sla_ms: 2000
+  qc:
+    stale_seconds: 8
+    spike_pips: 25
+
+# === 14 ============================================================
+self_optimize:
+  schedule:
+    daily_utc: '22:30'
+    weekly_utc: Fri 21:00
+  steps:
+    data_refresh: true
+    hparam_search:
+      enabled: false
+      max_trials: 20
+      sampler: tpe
+      space:
+        pa.market_structure.lookback:
+        - 2
+        - 3
+        - 4
+        - 5
+        pa.regime.atr_window:
+          min: 10
+          max: 24
+          step: 1
+        pa.regime.width_window:
+          min: 10
+          max: 30
+          step: 1
+        pa.regime.slope_window:
+          min: 6
+          max: 20
+          step: 1
+        pa.regime.spike_thr_atr:
+          choices:
+          - 1.4
+          - 1.6
+          - 1.8
+          - 2.0
+          - 2.2
+          - 2.5
+        pa.regime.channel_slope_thr:
+          min: 0.1
+          max: 0.35
+          step: 0.05
+        pa.breakouts.range_window:
+          min: 6
+          max: 30
+          step: 1
+        pa.breakouts.min_periods:
+          rule: min_periods = max(3, range_window//3)
+        pa.breakouts.confirm_closes:
+          choices:
+          - 1
+          - 2
+          - 3
+        pa.breakouts.retest_lookahead:
+          choices:
+          - 3
+          - 5
+          - 8
+        pa.breakouts.fail_break_lookahead:
+          choices:
+          - 2
+          - 3
+          - 5
+        pa.microchannels.min_len:
+          choices:
+          - 3
+          - 4
+          - 5
+          - 6
+        pa.microchannels.near_extreme_thr:
+          choices:
+          - 0.1
+          - 0.15
+          - 0.2
+          - 0.25
+          - 0.3
+        pa.mtf.bias_window_base:
+          min: 6
+          max: 16
+          step: 1
+        pa.mtf.bias_window_higher:
+          min: 6
+          max: 20
+          step: 1
+        pa.mtf.fillna_confluence:
+          choices:
+          - 0.3
+          - 0.5
+        pa.confluence.weights:
+          choices:
+          - - 0.3
+            - 0.3
+            - 0.2
+            - 0.2
+          - - 0.35
+            - 0.25
+            - 0.2
+            - 0.2
+          - - 0.25
+            - 0.35
+            - 0.2
+            - 0.2
+          - - 0.3
+            - 0.25
+            - 0.2
+            - 0.25
+        pa.confluence.strong_entry_threshold:
+          min: 0.6
+          max: 0.8
+          step: 0.02
+        pa.confluence.filter_threshold:
+          min: 0.3
+          max: 0.5
+          step: 0.02
+    finetune:
+      enabled: true
+      steps: 75000
+      mix_replay_with_recent_pct: 0.2
+    backtest:
+      enabled: true
+    deploy:
+      staging_then_promote: true
+  acceptance_gates:
+    sharpe_min: 0.8
+    profit_factor_min: 1.2
+    winrate_min: 0.48
+    max_drawdown_max: 0.12
+    turnover_max_per_day: 80
+    min_trades_total: 200
+  alerts_on_change: true
+
+# === 15 ============================================================
+monitoring:
+  logging:
+    level: INFO
+    to_console: true
+    to_file: true
+    file_path: logs/bot.log
+    rotate_max_bytes: 10485760
+    rotate_backups: 5
+    jsonl: true
+  alerts:
+    enable_telegram: true
+    telegram:
+      bot_token_env: TELEGRAM_BOT_TOKEN
+      chat_id_env: TELEGRAM_CHAT_ID
+    email:
+      enabled: false
+      smtp_host: ''
+      smtp_user_env: SMTP_USER
+      smtp_pass_env: SMTP_PASS
+      to: []
+  reporting:
+    daily_summary: true
+    weekly_summary: true
+    include_equity_curve: true
+    include_trade_log: true
+
+# === 16 ============================================================
+safety:
+  hard_kill_switch:
+    enabled: true
+    conditions:
+    - name: max_daily_loss
+      metric: live/daily_loss_pct
+      op: '>='
+      value: 0.03
+    - name: max_drawdown_total
+      metric: live/total_drawdown_pct
+      op: '>='
+      value: 0.2
+    - name: too_many_trades
+      metric: live/trades_per_day
+      op: '>'
+      value: 120
+  news_filter:
+    enabled: true
+    high_impact_freeze_minutes_before: 31
+    high_impact_freeze_minutes_after: 16
+    medium_impact_freeze_minutes_before: 16
+    medium_impact_freeze_minutes_after: 11
+    sources:
+    - forexfactory
+    currencies:
+    - USD
+    - EUR
+    - GBP
+    - JPY
+
+# === 17 ============================================================
+cicd:
+  enabled: false
+  run_unit_tests_on_push: true
+  run_backtest_on_main: true
+  artifact_retention_days: 30
+
+# === 18 ============================================================
+scripts:
+  download_data: scripts/run_download.py
+  train: scripts/run_train.py
+  backtest: scripts/run_backtest.py
+  deploy: scripts/run_deploy.py
+  self_optimize: scripts/run_self_optimize.py
+
+# === 19 ============================================================
+secrets:
+  use_env: true
+  env_keys:
+    MT5_LOGIN: MT5_LOGIN
+    MT5_PASSWORD: MT5_PASSWORD
+    MT5_SERVER: MT5_SERVER
+    MT5_PATH: MT5_PATH
+    TELEGRAM_BOT_TOKEN: TELEGRAM_BOT_TOKEN
+    TELEGRAM_CHAT_ID: TELEGRAM_CHAT_ID
+
+# === 20 ============================================================
+# Some keys of this part is used in: f03_data/data_handler.py
+per_symbol_overrides:
+  XAUUSD:
+    # اندیکاتورهای اضافی
+    extra_indicators:
+      - cci(20)@{tf}
+      - willr(14)@{tf}
+    # تغییر پارامترهای اندیکاتورهای هسته
+    override_params:
+      sma: {period: 30}  # به جای 20
+      rsi: {period: 10}   # به جای 14
+    
+    data_quality:
+      spike_threshold: 0.04  # طلا نوسان بالاتر دارد، کمی سخت‌گیرانه‌تر
+
+    risk:
+      risk_per_trade: 0.005
+      sl_atr_mult: 5
+
+    evaluation:
+      acceptance_gates:
+        sharpe_min: 0.9
+        max_drawdown_max: 0.1
+      backtest:
+        #point_value: 10.0
+
+  EURUSD:
+    data_quality:
+      spike_threshold: 0.01  # جفت‌ارز اصلی، نوسان کمتر
+
+# === END ===========================================================

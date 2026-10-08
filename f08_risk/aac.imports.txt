@@ -1,0 +1,178 @@
+contracts.py (1)===/1
+        ------------------------------------------------------- 200, 14, 6
+        from f07_agents.contracts import (
+            DecisionMode,
+            ModelIdentity,
+            PortfolioDecision,
+            PortfolioContext,
+        )
+        from f08_risk.stop_loss_position_sizing import (
+            StopLossPositionSizingRequest,
+            StopLossPositionSizingResult,
+        )
+        if TYPE_CHECKING:
+            from f08_risk.risk_context import RiskContext
+        -------------------------------------------------------
+
+
+limits.py (2)===/2
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+state.py (3)===/3
+        ------------------------------------------------------- 1
+        from f08_risk.contracts import (
+            RiskDecisionStatus,
+        )        
+        -------------------------------------------------------
+
+
+risk_engine.py (4)===/4
+        ------------------------------------------------------- 200, 1, 2, 10, 6, 7, 14, 15, 3, 9
+        from f07_agents.contracts import (
+            PortfolioDecision
+        )
+        from f08_risk.contracts import (
+            RiskDecision,
+            RiskDecisionStatus,
+            RiskRequest,
+            RiskViolation,
+        )
+        from f08_risk.limits import (
+            RiskLimits
+        )
+        from f08_risk.projection_margin import (
+            ProjectionMarginRequest
+        )
+        from f08_risk.risk_context import (
+            RiskContext
+        )
+        from f08_risk.risk_projection import (
+            ProjectedRiskState,
+            RiskProjection,
+        )
+        from f08_risk.stop_loss_position_sizing import (
+            StopLossPositionSizingCalculator,
+            StopLossPositionSizingResult,
+        )
+        from f08_risk.audit import (
+            RiskAuditModification,
+            RiskAuditRecord,
+            RiskAuditTrail
+        )
+        from f08_risk.state import (
+            RiskEngineState
+        )
+        from f08_risk.position_sizing import (
+            PositionSizingCalculator,
+            PositionSizingRequest,
+        )
+        -------------------------------------------------------
+
+
+action_builder.py (5)===/5
+        ------------------------------------------------------- 100, 1
+        from f06_env.contracts import (
+            PortfolioAction,
+            PositionIntent,
+        )
+        from f08_risk.contracts import (
+            RiskDecision,
+            RiskDecisionStatus,
+        )
+        -------------------------------------------------------
+
+
+risk_context.py (7)===/6
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+risk_projection.py (9)===/7
+        ------------------------------------------------------- 200, 10, 6
+        from f07_agents.contracts import (
+            PortfolioDecision
+        )
+        from f08_risk.projection_margin import (
+            ProjectionMarginCalculator,
+            ProjectionMarginRequest,
+        )
+        from f08_risk.risk_context import (
+            RiskContext,
+            SymbolRiskSnapshot,
+        )
+        -------------------------------------------------------
+
+
+margin_calculator.py (12)===/8
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+position_sizing.py (14)===/9
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+projection_margin.py (16)===/10
+        ------------------------------------------------------- 8, 9
+        from f08_risk.margin_calculator import (
+            InstrumentMarginSpec,
+            MarginCalculator,
+            MarginRequest,
+        )
+        from f08_risk.position_sizing import (
+            PositionSizingCalculator,
+            PositionSizingRequest,
+        )
+        -------------------------------------------------------
+
+
+stop_loss_risk.py (32)===/11
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+risk_based_position_sizing.py (34)===/12
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+stop_loss_cost.py (36)===/13
+        -------------------------------------------------------
+        -------------------------------------------------------
+
+
+stop_loss_position_sizing.py (38)===/14
+        ------------------------------------------------------- 12, 13, 11
+        from f08_risk.risk_based_position_sizing import (
+            RiskBasedPositionSizingCalculator,
+            RiskBasedPositionSizingRequest,
+        )
+        from f08_risk.stop_loss_cost import (
+            StopLossCostCalculator,
+            StopLossCostRequest,
+        )
+        from f08_risk.stop_loss_risk import (
+            StopLossRiskCalculator,
+            StopLossRiskRequest,
+        )
+        -------------------------------------------------------
+
+
+audit.py (43)===/15
+        ------------------------------------------------------- 200, 1, 14
+        from f07_agents.contracts import (
+            DecisionMode,
+            ModelIdentity
+        )
+        from f08_risk.contracts import (
+            RiskDecisionStatus,
+            RiskViolation
+        )
+        from f08_risk.stop_loss_position_sizing import (
+            StopLossPositionSizingRequest,
+            StopLossPositionSizingResult,
+        )
+        -------------------------------------------------------

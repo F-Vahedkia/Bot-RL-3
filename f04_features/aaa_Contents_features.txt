@@ -1,0 +1,113 @@
+
+
+////////////////////////////////////////////////////////
+/                                                      /
+/        SITUATION:                                    /
+/                     FUNCTIONAL FREEZE                /
+/                                                      /
+////////////////////////////////////////////////////////
+
+
+===========================================================
+فایلهای اصلی موجود در ریشه پوشه اصلی
+=========================================================== پوشه 1
+فایل های هسته
+-----------------------
+feature_sys_contract.py
+feature_pipeline.py
+feature_C_registry_1.py
+feature_B_graph.py
+feature_C_engine_6.py
+feature_B_cache_6.py
+feature_B_store.py
+observation_B_builder.py
+
+فایل های تستر
+----------------------------------
+feature_sys_contract_tester_A.py
+feature_pipeline_tester_A.py
+feature_B_graph_tester_A.py
+feature_C_engine_6_tester_A.py
+feature_B_cache_6_tester_A.py
+feature_B_store_tester_A.py
+observation_B_builder_tester_A.py
+data_flow_test.py
+feature_tester_e2e_batch_live.py
+
+اجرای همزمان این فایل های تستر
+-------------------------------- ALL PASSED = 203
+pytest -v -s `
+f04_features/feature_sys_contract_tester_A.py `
+f04_features/feature_pipeline_tester_A.py `
+f04_features/feature_B_graph_tester_A.py `
+f04_features/feature_C_engine_6_tester_A.py `
+f04_features/feature_B_cache_6_tester_A.py `
+f04_features/feature_B_store_tester_A.py `
+f04_features/observation_B_builder_tester_A.py `
+f04_features/data_flow_test_2.py `
+f04_features/feature_tester_e2e_batch_live.py `
+
+===========================================================
+فایل های موجود در پوشه time_features
+=========================================================== پوشه 2
+فایل های هسته
+-------------------------
+time_feature_engine.py     (فایل هسته)
+time_feature_functions.py  (فایل هسته)
+time_feature_registry.py   (فایل هسته)
+
+فایل های تستر
+------------------------------
+time_feature_test_batch_e2e.py
+time_feature_test_live_e2e.py
+
+اجرای تکی این فایل های تستر
+--------------------------------
+python -m f04_features.time_features.time_feature_test_batch_e2e  ---> OK
+python -m f04_features.time_features.time_feature_test_live_e2e   ---> OK
+
+اسناد
+------------------------------
+contract_1_050526.docx
+
+
+===========================================================
+فایل های موجود در پوشه indicators_new
+=========================================================== پوشه 3
+فایل های هسته
+----------------------------------
+indicators_B_batch.py  (فایل هسته)
+indicators_B_class.py  (فایل هسته)
+indicators_B_maths.py  (فایل هسته)
+price_action_maths.py  (نیاز دارد به بازبینی و تکمیل و تست با فایل تستر)
+
+فایل های تستر
+----------------------------------
+tester.py
+ts03_idx_btch__1all_1.py
+
+اجرای همزمان این فایل های تستر
+--------------------------------
+python -m f04_features.indicators_new.tester                  ---> OK
+python -m f04_features.indicators_new.ts03_idx_btch__1all_1   ---> OK
+
+
+===========================================================
+پوشه engine ----> برای زیگزاگ زنده و همچنین ضروری است برای بسط اندیکاتورهای بیشتر
+=========================================================== پوشه 4
+فایل های هسته
+----------------------------
+adaptive_structure_engine.py
+adaptive_structure_wrapper.py
+online_structure_engine.py
+
+
+
+===========================================================
+پوشه های قدیمی که فعلاً باید نگهداری شوند
+===========================================================
+
+پوشه indicators
+پوشه price_action
+
+

@@ -1,0 +1,86 @@
+"""
+سطر های زیر را باید کپی و در ترمینال وی-اس-کد در ریشه پروژخ اجرا کنیم
+با اجرای این دستورات تمام فایلهایی که از کلیدهای زیر استفاده نموده اند، لیست میشوند.
+"""
+
+
+
+
+"""
+این به ما می‌گوید کدام فایل‌ها اصلاً به این کلیدها اشاره کرده‌اند.
+"""
+Get-ChildItem -Path . -Recurse -File -Include *.py |
+    Where-Object {
+        $_.FullName -notmatch '\\(__pycache__|\.git|\.venv|venv)\\'
+    } |
+    Select-String -Pattern `
+        'risk_per_trade', `
+        'max_daily_loss_pct', `
+        'max_total_drawdown_pct', `
+        'position_sizing', `
+        'use_atr_for_sl', `
+        'sl_atr_mult', `
+        'tp_atr_mult', `
+        'breakeven', `
+        'trailing', `
+        'position_limits', `
+        'max_open_positions', `
+        'max_positions_per_symbol', `
+        'cooldown_minutes_after_stop' |
+    Select-Object Path, LineNumber, Line
+=====================================================================
+Get-ChildItem .\f01_config,.\f03_data,.\f04_features,.\f06_env,.\f07_agents,.\f08_risk `
+    -Recurse -File -Include *.py |
+    Select-String -Pattern `
+        'risk_per_trade', `
+        'max_daily_loss_pct', `
+        'max_total_drawdown_pct', `
+        'position_sizing', `
+        'use_atr_for_sl', `
+        'sl_atr_mult', `
+        'tp_atr_mult', `
+        'breakeven', `
+        'trailing', `
+        'position_limits', `
+        'max_open_positions', `
+        'max_positions_per_symbol', `
+        'cooldown_minutes_after_stop' |
+    Select-Object Path,LineNumber,Line
+
+
+
+
+"""
+این خروجی به ما کمک می‌کند بفهمیم کدام فایل‌ها واقعاً configuration consumer هستند.
+"""
+Get-ChildItem -Path . -Recurse -File -Include *.py |
+    Where-Object {
+        $_.FullName -notmatch '\\(__pycache__|\.git|\.venv|venv)\\'
+    } |
+    Select-String -Pattern `
+        '\bcfg\.get\(', `
+        '\bself\.cfg\.get\(', `
+        '\bconfig\.get\(', `
+        '\bself\.config\.get\(', `
+        '\bcfg\[', `
+        '\bself\.cfg\[' |
+    Select-Object Path, LineNumber, Line
+
+
+
+
+
+
+"""
+با این خروجی می‌توانیم ببینیم چه فایل‌هایی خود بخش risk را به‌عنوان یک block دریافت می‌کنند.
+"""
+Get-ChildItem -Path . -Recurse -File -Include *.py |
+    Where-Object {
+        $_.FullName -notmatch '\\(__pycache__|\.git|\.venv|venv)\\'
+    } |
+    Select-String -Pattern `
+        'cfg\.get\(["'']risk', `
+        'self\.cfg\.get\(["'']risk', `
+        '\[["'']risk["'']\]' |
+    Select-Object Path, LineNumber, Line
+

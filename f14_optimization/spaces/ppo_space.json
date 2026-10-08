@@ -1,0 +1,15 @@
+{
+  "n_steps":       { "type": "int",   "low": 4096, "high": 4096, "step": 1 },
+  "batch_size":    { "type": "int",   "low": 64,   "high": 512,  "step": 64, "choices": [64,128,256,512] },
+  "learning_rate": { "type": "float", "low": 3e-5, "high": 1e-3 },
+  "gamma":         { "type": "float", "low": 0.99, "high": 0.999 },
+  "gae_lambda":    { "type": "float", "low": 0.90, "high": 0.98 },
+  "clip_range":    { "type": "float", "low": 0.10, "high": 0.30 },
+  "clip_range_vf": { "type": "float", "low": 0.20, "high": 0.20 },
+  "n_epochs":      { "type": "int",   "low": 5,    "high": 10,   "step": 1 },
+  "ent_coef":      { "type": "float", "low": 0.00, "high": 0.02 },
+  "vf_coef":       { "type": "float", "low": 0.30, "high": 0.80 },
+  "max_grad_norm": { "type": "float", "low": 0.50, "high": 1.00 },
+  "target_kl":     { "type": "float", "low": 0.20, "high": 0.50 }
+}
+

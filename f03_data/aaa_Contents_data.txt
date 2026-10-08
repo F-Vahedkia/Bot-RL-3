@@ -1,0 +1,130 @@
+
+
+////////////////////////////////////////////////////////
+/                                                      /
+/        SITUATION:                                    /
+/                     FUNCTIONAL FREEZE                /
+/                                                      /
+////////////////////////////////////////////////////////
+
+
+===================================================================================================
+لیست مرتب شده فایلهای این پوشه
+===================================================================================================
+
+فایل های اصلی
+-----------------------
+data_handler_F_3.py
+data_layer_functions.py
+live_market_engine.py
+mt5_connector.py
+mt5_data_loader_E.py
+mtf_dataset.py
+
+
+فایل های تستر:
+-----------------------
+tests_data_handler/
+    mtf_dataset_tester.py
+    test_live_datahandler_A.py
+    test_read_raw_df.py
+    test_real_raw_file.py
+    test_metadata_download_A.py
+    
+tests_live_market_engine/
+    test_1_event_bus.py
+    test_2_candle_detector.py
+    test_3_mt5_stream_worker.py
+    test_4_market_data_engine.py
+    test_5_full_pipeline.py
+    test_6_live_market_engine_integrity_1.py
+    test_7_live_data_full_path_integrity.py
+
+===================================================================================================
+فایل های تستر موجود در پوشه tests_data_handler
+===================================================================================================
+تستر های غیر live
+----------------------- ALL PASSED = 31
+pytest -v -s `
+f03_data/tests_data_handler/mtf_dataset_tester.py `
+f03_data/tests_data_handler/test_read_raw_df.py `
+f03_data/tests_data_handler/test_real_raw_file.py `
+f03_data/tests_data_handler/test_metadata_download_A.py `
+
+تسترهای live
+----------------------- RUN IS OK
+python -m f03_data.tests_data_handler.test_live_datahandler_A
+
+
+===================================================================================================
+فایل های تستر موجود در پوشه tests_live_market_engine
+===================================================================================================
+تستر های غیر live
+--------------------------------------- ALL PASSED = 29
+pytest -v -s `
+f03_data/tests_live_market_engine/test_1_event_bus.py `
+f03_data/tests_live_market_engine/test_2_candle_detector.py `
+f03_data/tests_live_market_engine/test_3_mt5_stream_worker.py `
+f03_data/tests_live_market_engine/test_4_market_data_engine.py `
+f03_data/tests_live_market_engine/test_5_full_pipeline.py `
+
+تسترهای live
+--------------------------------------- ALL RUNs IS OK
+python -m f03_data.tests_live_market_engine.test_6_live_market_engine_integrity_1
+python -m f03_data.tests_live_market_engine.test_7_live_data_full_path_integrity
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+===================================================================================================
+فایل های دیگر که به درد میخورند و فعلاً در این پوشه نگهداری میشوند
+===================================================================================================
+
+symbol_specs_snapshot.py
+ExamCaller_write_specs_yaml.py
+specs_snapshot.yaml
+
+===================================================================================================
+فایل هایی که به عنوان راهنما فعلاً در این پوشه نگهداری میشوند
+===================================================================================================
+
+ZZZ_layers_data_to_features.md
+ZZZ_using_data_handler.docx
+ZZZ_using_data_handler.py
+
+===================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+آدرس فایل های اصلی در گیت هاب:
+--------------------------------
+
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mt5_connector.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mt5_data_loader_E.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/data_handler_G.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mtf_dataset.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/live_market_engine.py
+
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/data_layer_functions.py

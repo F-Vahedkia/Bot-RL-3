@@ -1,0 +1,90 @@
+account_currency: USD
+symbol_specs:
+  XAUUSD:
+    digits: 2
+    point: 0.01
+    trade_tick_value: 0.1
+    trade_tick_size: 0.01
+    contract_size: 100.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 1.0
+  EURUSD:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 1.0
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 10.0
+  GBPUSD:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 1.0
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 10.0
+  USDJPY:
+    digits: 3
+    point: 0.001
+    trade_tick_value: 0.6421906407136022
+    trade_tick_size: 0.001
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 6.421906
+  USDCHF:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 1.2569762180099553
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 12.569762
+  USDCAD:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 0.7252788697254094
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 7.252789
+  AUDUSD:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 1.0
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 10.0
+  NZDUSD:
+    digits: 5
+    point: 1.0e-05
+    trade_tick_value: 1.0
+    trade_tick_size: 1.0e-05
+    contract_size: 100000.0
+    volume_min: 0.01
+    volume_step: 0.01
+    volume_max: 100.0
+    stops_level: null
+    pip_value_per_lot: 10.0

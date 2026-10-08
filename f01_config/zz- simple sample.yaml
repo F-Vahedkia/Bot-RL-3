@@ -1,0 +1,112 @@
+# ============================================================
+# بخش اصلی تنظیمات نمادها و تایم‌فریم‌ها
+# ============================================================
+symbols:
+  XAUUSD_i:
+    base_tf: M1
+    timeframes: [M1, M5, H1, H4]
+    warmup: 100  # تعداد کندل‌های اولیه برای هر تایم‌فریم (اختیاری)
+
+  EURUSD_i:
+    base_tf: M5
+    timeframes: [M5, M15, H1]
+    warmup: 80
+
+  BTCUSD_i:
+    base_tf: M1
+    timeframes: [M1, M5, M15]
+    warmup: 120
+
+# ============================================================
+# مجموعه‌ی هسته (Core) از اندیکاتورها (برای همه نمادها یکسان)
+# ============================================================
+core_indicators:
+  - sma(close,20)@{tf}
+  - ema(close,50)@{tf}
+  - rsi(14)@{tf}
+  - macd(12,26,9)@{tf}
+  - bbands(close,20,2)@{tf}
+  - atr(14)@{tf}
+  - supertrend(10,3)@{tf}
+  - stochastic(14,3)@{tf}
+  - obv@{tf}
+  - adx(14)@{tf}
+
+# ============================================================
+# سفارشی‌سازی (Overrides) برای هر نماد (اختیاری)
+# ============================================================
+per_symbol_overrides:
+  XAUUSD_i:
+    # اندیکاتورهای اضافی
+    extra_indicators:
+      - cci(20)@{tf}
+      - willr(14)@{tf}
+    # تغییر پارامترهای اندیکاتورهای هسته
+    override_params:
+      sma: {period: 30}  # به جای 20
+      rsi: {period: 10}   # به جای 14
+
+  EURUSD_i:
+    extra_indicators:
+      - mfi(14)@{tf}
+    override_params: {}
+
+  BTCUSD_i:
+    extra_indicators:
+      - kama(close,20)@{tf}
+      - hma(close,20)@{tf}
+    override_params: {}
+
+# ============================================================
+# تنظیمات عمومی فیچرها
+# ============================================================
+features:
+  # زمان‌های تایم‌فریم‌هایی که فیچرها باید روی آن‌ها محاسبه شوند
+  target_timeframes: [M1, M5, H1, H4, D1]
+  
+  # تنظیمات زمان‌بندی
+  time_features:
+    add_hour_of_day: true
+    add_day_of_week: true
+    add_session_flags: true
+    normalize_time: true
+
+  # تنظیمات کیفیت داده
+  data_quality:
+    spike_threshold: 0.05
+    stale_threshold: 0.001
+
+# ============================================================
+# تنظیمات محیط معاملاتی (Environment)
+# ============================================================
+trading_env:
+  max_positions: 1          # حداکثر تعداد موقعیت‌های همزمان
+  initial_balance: 10000.0
+  commission: 0.001         # کارمزد (درصد یا مقدار ثابت)
+  slippage: 0.0001          # لغزش قیمت
+  stop_loss: 0.02           # حد ضرر (درصد)
+  take_profit: 0.05         # حد سود (درصد)
+  reward_function: "sharpe" # تابع پاداش (sharpe, log_return, risk_adjusted)
+
+# ============================================================
+# بخش RL Agent (Stable-Baselines3)
+# ============================================================
+rl_agent:
+  algorithm: "PPO"          # PPO, SAC, DQN, ...
+  policy: "MlpPolicy"
+  learning_rate: 0.0003
+  n_steps: 2048
+  batch_size: 64
+  gamma: 0.99
+  seed: 42
+
+# ============================================================
+# مسیرهای ذخیره‌سازی
+# ============================================================
+paths:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+  observations_dir: "data/observations"
+  models_dir: "models"
+  logs_dir: "logs"

@@ -1,0 +1,418 @@
+
+
+////////////////////////////////////////////////////////
+/                                                      /
+/        SITUATION:                                    /
+/                     نزدیک به functiona freeze است   /
+/                                                      /
+////////////////////////////////////////////////////////
+
+
+===========================================================
+فایلهای اصلی موجود در ریشه پوشه اصلی
+=========================================================== پوشه 1
+فایل های هسته
+-----------------------
+????????????????????????
+
+فایل های تستر
+----------------------------------
+????????????????????????
+
+
+
+
+
+
+
+
+
+contracts.py (1)===/1
+limits.py (2)===/2
+state.py (3)===/3
+risk_engine.py (4)===/4
+action_builder.py (5)===/5
+f08_risk_tester_A.py (6) ---> tester
+
+risk_context.py (7)===/6
+risk_context_tester_A.py (8) ---> tester
+
+risk_projection.py (9)===/7
+risk_projection_tester_A.py (10) ---> tester
+risk_engine_projection_integration_tester_A.py (11) ---> tester
+
+margin_calculator.py (12)===/8
+margin_calculator_tester_A.py (13) ---> tester
+position_sizing.py (14)===/9
+position_sizing_tester_A.py (15) ---> tester
+projection_margin.py (16)===/10
+projection_margin_tester_A.py (17) ---> tester
+risk_projection_margin_integration_tester_A (18) ---> tester
+risk_engine_instrument_margin_tester_A.py (19) ---> tester
+
+# به نظر میرسد که فایلهای تستر بالایی ، تا اینجا، برای تست فایلهای جدید نوشته شده  بکار رفته اند
+# بنابراین از اینجا به پایین، باید فایلهای item-1 و ... که برای تکمیل فصل چهارم هستند، باشد.
+
+risk_engine_portfolio_risk_boundary_tester_A.py (20) -> tester
+risk_engine_position_count_boundary_tester_A.py (21) -> tester
+risk_context_symbol_position_count_contract_tester_A.py (22) -> tester
+risk_projection_symbol_position_count_contract_tester_A.py (23) ->tester
+risk_engine_symbol_position_count_boundary_tester_A.py (24) -> tester
+projection_margin_contract_tester_A.py (25) -> tester
+position_sizing_contract_tester_A.py (26) -> tester
+margin_calculator_contract_tester_A.py (27) ->tester
+
+risk_engine_account_hard_guard_tester_A.py (28) -> tester for case-3 / 12-cases
+
+risk_engine_hard_soft_conflict_tester_A.py (29) -> tester for case-4 / 12-cases
+
+net_exposure_direction_contract_tester_A.py (30) -> testre for case-5 / 12-cases
+risk_engine_net_exposure_direction_integration_tester_A.py (31) -> testre for case-5 / 12-cases
+
+stop_loss_risk.py (32)===/11         ======================================>>> for case-6 / 12-cases
+stop_loss_risk_contract_tester_A.py (33) ---> tester
+risk_based_position_sizing.py (34)===/12
+risk_based_position_sizing_contract_tester_A.py (35) ---> tester
+stop_loss_cost.py (36)===/13
+stop_loss_cost_contract_tester_A.py (37) ---> tester
+stop_loss_position_sizing.py (38)===/14
+stop_loss_position_sizing_contract_tester_A.py (39) ---> tester
+stop_loss_risk_request_decision_integration_tester_A.py (40) ---> tester
+stop_loss_exposure_alignment_integration_tester_A.py (41) ---> tester
+stop_loss_risk_cap_integration_tester_A.py (42) ---> tester
+
+audit.py (43)===/15          ======================================>>> for case-7 / 12-cases
+risk_audit_record_contract_tester_A.py (44) ---> tester
+risk_audit_trail_contract_tester_A.py (45) ---> tester
+risk_engine_audit_integration_tester_A (46) ---> tester
+risk_audit_modification_contract_tester_A.py (47) ---> tester
+
+risk_mode_policy.py (48)===/16   ======================================>>> for case-8 / 12-cases
+risk_mode_policy_contract_tester_A.py (49) ---> tester
+risk_engine_mode_policy_integration_tester_A.py (50) ---> tester
+
+risk_engine_multi_symbol_conflict_tester_A.py (51) ---> tester ==============>>> for case-9 / 12-cases
+risk_engine_three_symbol_conflict_tester_A.py (52) ---> tester
+
+
+item10_risk_engine_end_to_end_tester_A.py (53) ---> tester ===============>>> for case-10 / 12-cases
+
+===================================================================================================
+اجرای همزمان تمام فایلهای تستر
+===================================================================================================
+pytest -v -s `
+f08_risk/tests_ch4_i0prev/f08_risk_tester_A.py `
+f08_risk/tests_ch4_i0prev/risk_context_tester_A.py `
+f08_risk/tests_ch4_i0prev/risk_projection_tester_A.py `
+f08_risk/tests_ch4_i0prev/risk_engine_projection_integration_tester_A.py `
+f08_risk/tests_ch4_i0prev/margin_calculator_tester_A.py `
+f08_risk/tests_ch4_i0prev/position_sizing_tester_A.py `
+f08_risk/tests_ch4_i0prev/projection_margin_tester_A.py `
+f08_risk/tests_ch4_i0prev/risk_projection_margin_integration_tester_A.py `
+f08_risk/tests_ch4_i0prev/risk_engine_instrument_margin_tester_A.py `
+f08_risk/tests_ch4_i1_i2/risk_engine_portfolio_risk_boundary_tester_A.py `
+f08_risk/tests_ch4_i1_i2/risk_engine_position_count_boundary_tester_A.py `
+f08_risk/tests_ch4_i1_i2/risk_context_symbol_position_count_contract_tester_A.py `
+f08_risk/tests_ch4_i1_i2/risk_projection_symbol_position_count_contract_tester_A.py `
+f08_risk/tests_ch4_i1_i2/risk_engine_symbol_position_count_boundary_tester_A.py `
+f08_risk/tests_ch4_i1_i2/projection_margin_contract_tester_A.py `
+f08_risk/tests_ch4_i1_i2/position_sizing_contract_tester_A.py `
+f08_risk/tests_ch4_i1_i2/margin_calculator_contract_tester_A.py `
+f08_risk/tests_ch4_i3/risk_engine_account_hard_guard_tester_A.py `
+f08_risk/tests_ch4_i4/risk_engine_hard_soft_conflict_tester_A.py `
+f08_risk/tests_ch4_i5/net_exposure_direction_contract_tester_A.py `
+f08_risk/tests_ch4_i5/risk_engine_net_exposure_direction_integration_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_risk_contract_tester_A.py `
+f08_risk/tests_ch4_i6/risk_based_position_sizing_contract_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_cost_contract_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_position_sizing_contract_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_risk_request_decision_integration_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_exposure_alignment_integration_tester_A.py `
+f08_risk/tests_ch4_i6/stop_loss_risk_cap_integration_tester_A.py `
+f08_risk/tests_ch4_i7/risk_audit_record_contract_tester_A.py `
+f08_risk/tests_ch4_i7/risk_audit_trail_contract_tester_A.py `
+f08_risk/tests_ch4_i7/risk_engine_audit_integration_tester_A.py `
+f08_risk/tests_ch4_i7/risk_audit_modification_contract_tester_A.py `
+f08_risk/tests_ch4_i8/risk_mode_policy_contract_tester_A.py `
+f08_risk/tests_ch4_i8/risk_engine_mode_policy_integration_tester_A.py `
+f08_risk/tests_ch4_i9/risk_engine_multi_symbol_conflict_tester_A.py `
+f08_risk/tests_ch4_i9/risk_engine_three_symbol_conflict_tester_A.py `
+f08_risk/tests_ch4_i10/risk_engine_end_to_end_tester_A.py `
+===================================================================================================
+میزان باقی‌مانده فصل ۴
+
+به‌صورت واقع‌بینانه، فصل ۴ را الآن حدود ۷۰٪ تکمیل‌شده در نظر می‌گیرم؛ یعنی تقریباً ۳۰٪ کار اصلی باقی مانده است.
+
+بخش بنیادی Risk Layer ساخته و با regression کامل تثبیت شده؛
+قسمت باقی‌مانده بیشتر مربوط به production hardening، تکمیل قواعد ریسک و آزمون سناریوهای پیچیده است.
+
+وضعیت فعلی Chapter 4 — Risk Layer
+✅ انجام شده
+فصل ۴ — Risk Layer
+
+✅ contracts.py
+✅ limits.py
+✅ state.py
+✅ risk_context.py
+✅ risk_projection.py
+✅ risk_engine.py
+✅ action_builder.py
+
+✅ PositionSizingCalculator
+   12/12 graan result tests
+
+✅ MarginCalculator
+   12/12 graan result tests
+
+✅ ProjectionMarginCalculator
+   11/11 graan result tests
+
+✅ RiskProjection ↔ Margin integration
+   12/12 + 6/6 graan result tests
+
+✅ RiskEngine ↔ RiskProjection
+   12/12 + 6/6 graan result tests
+
+✅ RiskEngine ↔ Instrument-aware Margin
+   6/6 graan result tests
+
+✅ Regression کامل Chapter 4
+   88/88 graan result tests
+وضعیت عملکردی فعلی
+
+مسیر اصلی اکنون به‌صورت زیر کار می‌کند:
+
+PortfolioDecision
+        ↓
+RiskRequest
+        ↓
+RiskContext
+        ↓
+RiskProjection
+        ↓
+ProjectedRiskState
+        ↓
+Risk Constraints
+        ↓
+Margin Projection
+        ↓
+RiskDecision
+
+محدودیت‌های اصلی فعلی شامل:
+exposure، total exposure، correlation، concentration، margin utilization، drawdown و portfolio-risk budget هستند.
+مسیر projected نیز پس از اعمال modification دوباره projection را محاسبه می‌کند.
+
+🔲 کارهای باقی‌مانده (دو تا کار اول انجام شدند).
+=========================================================================================
+1. ✅ تکمیل Portfolio Risk constraints ==> 7 تست پاس شد. فایل شماره بیست
+
+هنوز باید تعریف کنیم portfolio risk دقیقاً چه چیزی را اندازه می‌گیرد و
+چگونه با exposure، margin و position risk ارتباط پیدا می‌کند.
+
+=========================================================================================
+2. ✅ Position-count / per-symbol constraints
+
+محدودیت‌هایی مثل:
+
+maximum open positions
+maximum positions per symbol
+maximum simultaneous directional exposure
+
+هنوز به‌صورت کامل در Risk Layer تثبیت نشده‌اند.
+
+=========================================================================================
+3. ✅ Leverage / Free-Margin hard guards
+
+باید guardهای صریح برای شرایط خطرناک مانند:
+
+insufficient free margin
+invalid margin level
+excessive leverage
+zero/negative usable capital
+
+تعریف و تست شوند.
+
+=========================================================================================
+4. ✅ Hard vs Soft constraints + Conflict Resolution
+
+این یکی از مهم‌ترین بخش‌های باقی‌مانده است.
+
+مثلاً اگر همزمان:
+
+Correlation limit
+        +
+Margin limit
+        +
+Symbol concentration
+        +
+Total exposure
+
+نقض شوند، باید اولویت و ترتیب حل تعارض‌ها کاملاً رسمی، deterministic و قابل audit باشد.
+
+در کد فعلی ترتیب اعمال محدودیت‌ها وجود دارد، اما هنوز باید به‌عنوان
+policy معماری به‌صورت رسمی تثبیت و با conflict scenarios تست شود.
+
+=========================================================================================
+5. ✅ Net Exposure / Direction
+
+باید به‌طور رسمی مشخص شود:
+
+gross exposure
+net exposure
+long exposure
+short exposure
+
+و مخصوصاً رفتار موقعیت موجود + موقعیت پیشنهادی چگونه محاسبه می‌شود.
+
+===========================================
+نتیجه پیاده سازی مورد پنجم:
+===========================================
+Item 5 — Net Exposure / Direction ✅
+
+قرارداد ما تا اینجا به‌صورت عملی تأیید شده است:
+        target_exposure > 0 → LONG
+        target_exposure < 0 → SHORT
+        target_exposure = 0 → FLAT
+
+و مهم‌تر اینکه تمام مسیرهای فعلی RiskEngine که exposure را محدود یا scale می‌کنند،
+علامت آن را حفظ می‌کنند؛ بنابراین Risk Layer خودش جهت را تغییر نمی‌دهد.
+این با ساختار فعلی RiskEngine و _cap_signed() سازگار است.
+
+همچنین transitionهایی مثل:
+        LONG → SHORT
+        SHORT → LONG
+        LONG → FLAT
+        FLAT → LONG
+در این مرحله فقط به‌عنوان state transition تعریف شده‌اند و
+تبدیل آنها به عملیات سفارش، مثل close/reverse/open، به Execution تعلق دارد؛
+خود RiskEngine نیز صراحتاً order placement و position accounting را جزو مسئولیت‌هایش نمی‌داند.
+
+پس Item 5 را می‌توانیم Green / Closed اعلام کنیم.
+=========================================================================================
+6. 🔲 Stop-Loss / Risk-per-Trade (✅ 90% انجام شده و بقیه مانده است- مراجعه شود به فایل وورد شماره نُه)
+
+اگر این موارد بخشی از قرارداد نهایی Risk باشند، باید به Risk Layer وارد شوند:
+
+stop distance
+risk per trade
+monetary risk
+portfolio risk contribution
+
+=========================================================================================
+7. ✅ Audit / Lineage
+
+باید مشخص شود RiskDecision چگونه ثبت می‌کند:
+
+original decision
+modified decision
+violated limits
+modification factors
+projection state
+risk-engine version
+
+تا تصمیم قابل بازسازی و audit باشد.
+
+=========================================================================================
+8. ✅ Mode-aware behavior
+
+رفتار Risk Layer برای:
+
+train
+optimize
+backtest
+replay
+eval
+shadow
+paper
+live
+
+باید صریحاً بررسی و تثبیت شود.
+
+=========================================================================================
+9. ✅ Multi-symbol / Conflict Scenarios
+
+تست‌های فعلی بسیار خوب‌اند، اما هنوز به مجموعه‌ای از سناریوهای پیچیده‌تر نیاز داریم:
+
+Symbol cap + Correlation
+Correlation + Total exposure
+Total exposure + Margin
+Margin + Free margin
+Drawdown + Exposure
+چند محدودیت همزمان
+
+=========================================================================================
+10. 🔲 End-to-End Chapter 4 Test
+
+یک تست رسمی End-to-End لازم است که کل مسیر فصل ۴ را از:
+
+PortfolioDecision
+        ↓
+RiskRequest
+        ↓
+RiskEngine
+        ↓
+RiskDecision
+
+در یک سناریوی واقعی چندنمادی بررسی کند.
+
+=========================================================================================
+11. 🔲 Final Architecture Review
+
+در پایان باید کل Chapter 4 بازبینی شود تا مشخص شود:
+
+contract
+responsibility
+dependency
+API
+immutability
+determinism
+error handling
+auditability
+
+با معماری کل v8 سازگار هستند.
+
+=========================================================================================
+12. 🔲 بستن رسمی Chapter 4
+
+پس از سبز شدن تست‌های نهایی:
+
+Chapter 4 = CLOSED
+
+و سپس می‌توانیم وارد Chapter بعدی شویم.
+
+=========================================================================================
+جمع‌بندی فعلی -----------------------------------------
+Chapter 4 — Risk Layer
+
+✅ Foundation                         COMPLETE
+✅ Core contracts                     COMPLETE
+✅ Risk context                       COMPLETE
+✅ Projection                         COMPLETE
+✅ Position sizing                    COMPLETE
+✅ Margin calculation                 COMPLETE
+✅ Instrument-aware margin            COMPLETE
+✅ RiskEngine                         FUNCTIONAL
+✅ Integration                        COMPLETE
+✅ Regression                         88/88 GREEN
+
+🔲 Advanced risk constraints
+🔲 Conflict-resolution policy
+🔲 Position-count / leverage guards
+🔲 Net/gross/directional risk
+🔲 Stop-loss / risk-per-trade
+🔲 Audit & lineage
+🔲 Mode behavior
+🔲 Advanced multi-symbol scenarios
+🔲 End-to-End test
+🔲 Final architecture review
+وضعیت فعلی قابل انتقال به چت بعدی
+
+Chapter 4 حدود 70٪ کامل است.
+Foundation و مسیر عملیاتی اصلی Risk Layer ساخته شده و Regression کامل 88/88 سبز است.
+Instrument-aware Margin نیز در مسیر واقعی RiskEngine تست شده و 6/6 تست آن سبز است.
+حدود 30٪ باقی‌مانده عمدتاً شامل:
+advanced constraints، conflict resolution، leverage/free-margin guards،
+net/gross risk semantics، risk-per-trade/SL در صورت نهایی‌شدن قرارداد،
+audit/lineage، mode-awareness، سناریوهای چندنمادی پیچیده، End-to-End و final review/closure است.
+
+================================================================================================ 

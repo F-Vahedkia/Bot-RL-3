@@ -1,0 +1,131 @@
+
+
+////////////////////////////////////////////////////////
+/                                                      /
+/        SITUATION:                                    /
+/                     FUNCTIONAL FREEZE                /
+/                                                      /
+////////////////////////////////////////////////////////
+
+
+===================================================================================================
+لیست مرتب شده فایلهای این پوشه همراه با action_builder محذوف
+===================================================================================================
+contracts.py (1)
+agent_state.py (2)
+symbol_agent.py (3)
+meta_agent.py (4)
+decision_engine.py (5)
+action_builder.py (between 5,6)
+portfolio_context_adapter.py (6)
+rl_policy_adapter.py (7)
+policy_factory.py (8)
+agent_factory.py (9)
+audit.py (10)
+observation_adapter.py (11)
+
+
+f07_agents_tester_A.py (t1)
+decision_engine_tester_A.py (t2)
+action_builder_tester_A.py (between t2,t3)
+portfolio_context_adapter_tester_A.py (t3)
+decision_layer_e2e_tester_A.py (t4)
+f07_agents_production_tester_A.py (t5)
+rl_policy_adapter_tester_A.py (t6)
+policy_factory_tester_A.py (t7)
+agent_factory_tester_A.py (t8)
+audit_tester_A.py (t9)
+observation_adapter_tester_A.py (t10)
+
+===================================================================================================
+اجرای همزمان تمام تسترها
+===================================================================================================
+pytest -v -s `
+f07_agents/tests/f07_agents_tester_A.py `
+f07_agents/tests/decision_engine_tester_A.py `
+f07_agents/tests/portfolio_context_adapter_tester_A.py `
+f07_agents/tests/decision_layer_e2e_tester_A.py `
+f07_agents/tests/f07_agents_production_tester_A.py `
+f07_agents/tests/rl_policy_adapter_tester_A.py `
+f07_agents/tests/policy_factory_tester_A.py `
+f07_agents/tests/agent_factory_tester_A.py `
+f07_agents/tests/audit_tester_A.py `
+f07_agents/tests/observation_adapter_tester_A.py `
+
+===================================================================================================
+هر فایل اصلی دارای چه کلاسی است
+
+1-contracts.py    imports ------ ندارد
+DecisionMode
+ModelIdentity
+AgentObservation
+SymbolContext
+PolicyOutput
+SymbolAgentOutput
+PortfolioContext
+MetaPolicyOutput
+PortfolioDecision
+
+
+2-agent_state.py          imports from 1
+SymbolAgentState
+MetaAgentState
+
+
+3-symbol_agent.py          imports from 1,2
+SymbolPolicy(Protocol)
+SymbolAgentConfig
+SymbolAgent
+
+
+4-meta_agent.py          imports from 1,2
+MetaPolicy(Protocol)
+MetaAgentConfig
+MetaAgent
+
+
+5-decision_engine.py          imports from 1,3,4
+MultiSymbolDecisionEngine
+
+
+6-action_builder.py      imports from 1, (f06_env.contracts)
+PositionSizer(Protocol)
+PortfolioActionBuilder
+
+
+7-portfolio_context_adapter.py      imports from 1, (f06_env.portfolio_state)
+PortfolioContextAdapter
+
+===================================================================================================
+
+f03_data
+    ↓
+f04_features
+    ↓
+Observation
+    ↓
+f07_agents
+    ├── Symbol-Agent
+    ├── Meta-Agent
+    ├── Decision Engine
+    ├── Portfolio Context Adapter
+    ├── RL Policy Adapter
+    ├── Policy Factory
+    ├── Agent Factory
+    └── Decision Audit
+    ↓
+PortfolioDecision
+    ↓
+f08_risk
+
+
+
+f07_agents تصمیم می‌سازد، اما ریسک نهایی را اعمال نمی‌کند و سفارش اجرا نمی‌کند.
+
+شواهد فعلی f06 نیز همین مرز را تأیید می‌کنند:
+RiskEngine مستقیماً PortfolioDecision را مصرف می‌کند و
+مسئول محدودیت‌های exposure، concentration، correlation، margin و portfolio risk است.
+
+===================================================================================================
+
+

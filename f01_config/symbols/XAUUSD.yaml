@@ -1,0 +1,14 @@
+extends: ../config.yaml
+
+indicators:
+  patterns:
+    # فقط همان چند spec که می‌خواهی متفاوت باشند؛
+    # مثال: استفاده از scale_k به‌جای پارامترهای جزء
+    - 'pat_tweezer(scale_k=0.30,atr_win=14)@H1'
+    - 'pat_inside_outside(scale_k=1.10,atr_win=14)@H1'
+    - 'pat_pin(scale_k=2.50)@H1'   # اگر در rules تعریف شده که ratio = f(scale_k)
+    # بقیهٔ specها را ننویس؛ از base به ارث می‌رسد.
+
+trading:
+  costs:
+    spread_pts: 2.0    # > 0 ; واحد: point/pip (همسو با price_point موجود)

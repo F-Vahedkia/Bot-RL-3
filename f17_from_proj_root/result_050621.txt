@@ -1,0 +1,52 @@
+E:\Bot-RL-3\f08_risk\limits.py                                                       62     max_open_positions: int | None = None                               
+E:\Bot-RL-3\f08_risk\limits.py                                                       65     max_positions_per_symbol: int | None = None                         
+E:\Bot-RL-3\f08_risk\limits.py                                                       90         if self.max_open_positions is not None:                         
+E:\Bot-RL-3\f08_risk\limits.py                                                       92                 not isinstance(self.max_open_positions, int)            
+E:\Bot-RL-3\f08_risk\limits.py                                                       93                 or isinstance(self.max_open_positions, bool)            
+E:\Bot-RL-3\f08_risk\limits.py                                                       95                 raise TypeError("max_open_positions must be an intege...
+E:\Bot-RL-3\f08_risk\limits.py                                                       97             if self.max_open_positions < 0:                             
+E:\Bot-RL-3\f08_risk\limits.py                                                       98                 raise ValueError("max_open_positions must be >= 0.")    
+E:\Bot-RL-3\f08_risk\limits.py                                                      100         if self.max_positions_per_symbol is not None:                   
+E:\Bot-RL-3\f08_risk\limits.py                                                      102                 not isinstance(self.max_positions_per_symbol, int)      
+E:\Bot-RL-3\f08_risk\limits.py                                                      103                 or isinstance(self.max_positions_per_symbol, bool)      
+E:\Bot-RL-3\f08_risk\limits.py                                                      105                 raise TypeError("max_positions_per_symbol must be an ...
+E:\Bot-RL-3\f08_risk\limits.py                                                      107             if self.max_positions_per_symbol < 0:                       
+E:\Bot-RL-3\f08_risk\limits.py                                                      108                 raise ValueError("max_positions_per_symbol must be >=...
+E:\Bot-RL-3\f08_risk\position_sizing.py                                               1 # f08_risk/position_sizing.py (14)                                      
+E:\Bot-RL-3\f08_risk\position_sizing_contract_tester_A.py                             1 # f08_risk/position_sizing_contract_tester_A.py (26)                    
+E:\Bot-RL-3\f08_risk\position_sizing_contract_tester_A.py                             3 #     python -m f08_risk.position_sizing_contract_tester_A              
+E:\Bot-RL-3\f08_risk\position_sizing_contract_tester_A.py                             4 #     pytest -v -s f08_risk/position_sizing_contract_tester_A.py        
+E:\Bot-RL-3\f08_risk\position_sizing_contract_tester_A.py                             7 Contract / edge-case tester for f08_risk.position_sizing.               
+E:\Bot-RL-3\f08_risk\position_sizing_contract_tester_A.py                            27 from f08_risk.position_sizing import (                                  
+E:\Bot-RL-3\f08_risk\position_sizing_tester_A.py                                      1 # f08_risk/position_sizing_tester_A.py (15)                             
+E:\Bot-RL-3\f08_risk\position_sizing_tester_A.py                                      2 # Run: pytest -v -s f08_risk/position_sizing_tester_A.py                
+E:\Bot-RL-3\f08_risk\position_sizing_tester_A.py                                      7 from f08_risk.position_sizing import (                                  
+E:\Bot-RL-3\f08_risk\projection_margin.py                                            33 from f08_risk.position_sizing import (                                  
+E:\Bot-RL-3\f08_risk\projection_margin_contract_tester_A.py                          44 from f08_risk.position_sizing import (                                  
+E:\Bot-RL-3\f08_risk\projection_margin_contract_tester_A.py                         231             "f08_risk.position_sizing",                                 
+E:\Bot-RL-3\f08_risk\risk_context_symbol_position_count_contract_tester_A.py          8 #   required before enforcing RiskLimits.max_positions_per_symbol.      
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                  40     - max_open_positions و max_positions_per_symbol اکنون در مسیر pro...
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 638             self.limits.max_open_positions is not None                  
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 640             > self.limits.max_open_positions                            
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 645                     code="MAX_OPEN_POSITIONS",                          
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 656         if self.limits.max_positions_per_symbol is not None:            
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 662                     > self.limits.max_positions_per_symbol              
+E:\Bot-RL-3\f08_risk\risk_engine.py                                                 667                             code="MAX_POSITIONS_PER_SYMBOL",            
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                 10 #   RiskLimits.max_open_positions                                       
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                 12 #   RiskEngine -> MAX_OPEN_POSITIONS hard rejection                     
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                 15 #   This tester intentionally does NOT claim that max_positions_per_s...
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                160     limits = RiskLimits(max_open_positions=1)                           
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                182     limits = RiskLimits(max_open_positions=1)                           
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                196         violation.code == "MAX_OPEN_POSITIONS"                          
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                213     limits = RiskLimits(max_open_positions=2)                           
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                235     limits = RiskLimits(max_open_positions=1)                           
+E:\Bot-RL-3\f08_risk\risk_engine_position_count_boundary_tester_A.py                257     limits = RiskLimits(max_open_positions=2)                           
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py          10 #   RiskLimits.max_positions_per_symbol                                 
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py          12 #   RiskEngine -> MAX_POSITIONS_PER_SYMBOL hard rejection               
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         195         max_positions_per_symbol=1,                                     
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         225         max_positions_per_symbol=1,                                     
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         257         max_positions_per_symbol=1,                                     
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         278     assert "MAX_POSITIONS_PER_SYMBOL" in violation_codes                
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         293         max_positions_per_symbol=1,                                     
+E:\Bot-RL-3\f08_risk\risk_engine_symbol_position_count_boundary_tester_A.py         327         max_positions_per_symbol=3,                                     
+E:\Bot-RL-3\f08_risk\risk_projection_margin_integration_tester_A.py                  18 # from f08_risk.position_sizing import (   

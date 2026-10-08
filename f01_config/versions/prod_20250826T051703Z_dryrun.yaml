@@ -1,0 +1,345 @@
+version: 1.0.0
+project:
+  name: Bot-RL-1
+  timezone: UTC
+  base_currency: USD
+  random_seed: 42
+  enable_env_override: true
+paths:
+  root_dir: .
+  data_dir: data
+  raw_dir: data/raw
+  processed_dir: data/processed
+  logs_dir: logs
+  reports_dir: reports
+  cache_dir: cache
+  models_dir: f13_models
+  config_versions_dir: f01_config/versions
+  tmp_dir: tmp
+  models:
+    production_dir: f13_models/production
+    staging_dir: f13_models/staging
+    checkpoints_dir: f13_models/checkpoints
+    experiments_dir: f13_models/experiments
+mt5_credentials:
+  login: 52422163
+  password: 99%BeginNika88%
+  server: Alpari-MT5-Demo
+data_paths:
+  raw: data/raw
+  processed: data/processed
+download_defaults:
+  symbols:
+  - XAUUSD
+  timeframes:
+  - M1
+  - M5
+  - M15
+  - M30
+  - H1
+  - H4
+  lookback_bars: 20000
+  batch_size: 5000
+  save_format: csv
+  align_to_session: true
+timeframes:
+- M5
+- M15
+- M30
+- H1
+- H4
+n_candles_per_tf: 256
+n_candles: 256
+start_date: null
+end_date: null
+sessions:
+  asia:
+    start_utc: 00:00
+    end_utc: 08:00
+  london:
+    start_utc: 08:00
+    end_utc: '16:00'
+  newyork:
+    start_utc: '13:00'
+    end_utc: '21:00'
+features:
+  pipeline:
+    use_default_set: true
+    include:
+      indicators: true
+      price_action: true
+      fibonacci: true
+      support_resistance: true
+      volatility: true
+  indicators:
+    rsi:
+      enabled: true
+      period: 14
+    cci:
+      enabled: true
+      period: 20
+    mfi:
+      enabled: true
+      period: 14
+    atr:
+      enabled: true
+      period: 14
+    macd:
+      enabled: true
+      fast: 12
+      slow: 26
+      signal: 9
+    divergences:
+      enabled: true
+      min_swing_distance: 5
+  fibonacci:
+    enabled: true
+    swing_window_bars: 200
+    cluster_merge_pips: 20
+    order_planner:
+      use_atr_for_sl_tp: true
+      sl_atr_mult: 1.5
+      tp_atr_mult: 2.0
+      partial_take_profits:
+        enabled: true
+        levels_r_multiple:
+        - 1.0
+        - 2.0
+        portions:
+        - 0.5
+        - 0.5
+  support_resistance:
+    enabled: true
+    lookback_bars: 1500
+    cluster_tolerance_pips: 15
+  time_features:
+    add_hour_of_day: true
+    add_day_of_week: true
+    add_session_flags: true
+    normalize_time: true
+env:
+  observation:
+    resample_to_base_tf: M5
+    standardize_inputs: true
+    clip_values: true
+    clip_range:
+    - -5
+    - 5
+  action_space:
+    type: discrete
+    discrete_actions:
+    - HOLD
+    - OPEN_LONG
+    - OPEN_SHORT
+    - CLOSE_POSITION
+    fractional_position_sizes:
+    - 0.25
+    - 0.5
+    - 1.0
+  reward:
+    type: risk_adjusted_pnl
+    params:
+      dd_penalty: 2.5
+      trade_cost_penalty: 1.0
+  termination:
+    max_episode_steps: 5000
+    stop_on_margin_call: true
+    stop_on_max_drawdown_pct: 0.2
+rl:
+  algorithm: PPO
+  policy: MlpPolicy
+  hyperparams:
+    ppo:
+      n_steps: 2048
+      batch_size: 256
+      gamma: 0.99
+      gae_lambda: 0.95
+      clip_range: 0.2
+      ent_coef: 0.01
+      vf_coef: 0.5
+      max_grad_norm: 0.5
+      learning_rate: 0.0003
+      target_kl: 0.02
+    sac:
+      learning_rate: 0.0003
+      buffer_size: 1000000
+      batch_size: 256
+      gamma: 0.99
+      tau: 0.005
+      ent_coef: auto
+      train_freq: 1
+      gradient_steps: 1
+training:
+  total_timesteps: 2000000
+  eval_freq_steps: 25000
+  checkpoint_interval_steps: 50000
+  max_checkpoints_to_keep: 10
+  resume_if_exists: true
+  early_stop:
+    enabled: true
+    metric: eval/sharpe
+    patience_evals: 5
+    min_delta: 0.01
+  experiment_name: ppo_baseline_mtf
+evaluation:
+  backtest:
+    commissions_per_lot_usd: 7.0
+    slippage_pips_mean: 2
+    slippage_pips_std: 1
+    reuse_historical_spread: true
+    cross_validation:
+      enabled: true
+      folds: 3
+      method: expanding_window
+      min_trades_per_fold: 30
+  acceptance_gates:
+    sharpe_min: 0.8
+    profit_factor_min: 1.2
+    winrate_min: 0.48
+    max_drawdown_max: 0.12
+    turnover_max_per_day: 80
+    min_trades_total: 200
+risk:
+  risk_per_trade: 0.01
+  max_daily_loss_pct: 0.03
+  max_total_drawdown_pct: 0.2
+  position_sizing:
+    method: fixed_fractional
+    min_lot: 0.01
+    lot_step: 0.01
+    max_lot: 10.0
+    use_atr_for_sl: true
+    sl_atr_mult: 1.5
+    tp_atr_mult: 2.0
+    breakeven:
+      enabled: true
+      at_r_multiple: 1.0
+    trailing:
+      enabled: true
+      type: chandelier
+      atr_period: 22
+      atr_mult: 3.0
+  position_limits:
+    max_open_positions: 1
+    max_positions_per_symbol: 1
+    cooldown_minutes_after_stop: 15
+executor:
+  live_trading: false
+  order:
+    type: market
+    retry_attempts: 3
+    timeout_sec: 3.0
+    partial_fill_handling: cancel_remaining
+  slippage_cap_pips: 6
+  sync_with_env_behaviors: true
+  canary_deployment:
+    enabled: true
+    volume_multiplier: 0.5
+    min_duration_minutes: 60
+    promote_criteria:
+      min_trades: 5
+      min_pnl_usd: 0.0
+      max_dd_live: 0.03
+  rollback:
+    on_breach: true
+self_optimize:
+  schedule:
+    daily_utc: '22:30'
+    weekly_utc: Fri 21:00
+  steps:
+    data_refresh: true
+    hparam_search:
+      enabled: false
+      max_trials: 20
+      sampler: tpe
+    finetune:
+      enabled: true
+      steps: 75000
+      mix_replay_with_recent_pct: 0.2
+    backtest:
+      enabled: true
+    deploy:
+      staging_then_promote: true
+  acceptance_gates:
+    sharpe_min: 0.8
+    profit_factor_min: 1.2
+    winrate_min: 0.48
+    max_drawdown_max: 0.12
+    turnover_max_per_day: 80
+    min_trades_total: 200
+  alerts_on_change: true
+monitoring:
+  logging:
+    level: INFO
+    to_console: true
+    to_file: true
+    file_path: logs/bot.log
+    rotate_max_bytes: 10485760
+    rotate_backups: 5
+    jsonl: true
+  alerts:
+    enable_telegram: true
+    telegram:
+      bot_token_env: TELEGRAM_BOT_TOKEN
+      chat_id_env: TELEGRAM_CHAT_ID
+    email:
+      enabled: false
+      smtp_host: ''
+      smtp_user_env: SMTP_USER
+      smtp_pass_env: SMTP_PASS
+      to: []
+  reporting:
+    daily_summary: true
+    weekly_summary: true
+    include_equity_curve: true
+    include_trade_log: true
+safety:
+  hard_kill_switch:
+    enabled: true
+    conditions:
+    - name: max_daily_loss
+      metric: live/daily_loss_pct
+      op: '>='
+      value: 0.03
+    - name: max_drawdown_total
+      metric: live/total_drawdown_pct
+      op: '>='
+      value: 0.2
+    - name: too_many_trades
+      metric: live/trades_per_day
+      op: '>'
+      value: 120
+  news_filter:
+    enabled: false
+    high_impact_freeze_minutes_before: 30
+    high_impact_freeze_minutes_after: 15
+    sources: []
+per_symbol_overrides:
+  XAUUSD:
+    risk:
+      risk_per_trade: 0.005
+      sl_atr_mult: 1.8
+    evaluation:
+      acceptance_gates:
+        sharpe_min: 0.9
+        max_drawdown_max: 0.1
+cicd:
+  enabled: false
+  run_unit_tests_on_push: true
+  run_backtest_on_main: true
+  artifact_retention_days: 30
+scripts:
+  download_data: scripts/run_download.py
+  train: scripts/run_train.py
+  backtest: scripts/run_backtest.py
+  deploy: scripts/run_deploy.py
+  self_optimize: scripts/run_self_optimize.py
+secrets:
+  use_env: true
+  env_keys:
+    MT5_LOGIN: MT5_LOGIN
+    MT5_PASSWORD: MT5_PASSWORD
+    MT5_SERVER: MT5_SERVER
+    MT5_PATH: MT5_PATH
+    TELEGRAM_BOT_TOKEN: TELEGRAM_BOT_TOKEN
+    TELEGRAM_CHAT_ID: TELEGRAM_CHAT_ID

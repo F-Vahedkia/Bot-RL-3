@@ -1,0 +1,647 @@
+============================================================
+Bot-RL-3 v8 — CHAPTER 3 / f07_agents
+DECISION-LAYER FILE MAP
+============================================================
+
+هدف فصل ۳:
+ساخت لایه تصمیم‌گیری چندنمادی و مستقل از Execution برای یک
+ربات Forex حرفه‌ای، خودمختار، Multi-Symbol، RL-based و
+قابل توسعه برای Live / Paper / Shadow / Backtest / Replay /
+Eval / Train / Optimize.
+
+معماری اصلی:
+
+ObservationBuilder
+        ↓
+AgentObservation
+        ↓
++-------------------+-------------------+-------------------+
+|                   |                   |                   |
+↓                   ↓                   ↓
+XAUUSD              EURUSD              GBPUSD
+Symbol-Agent        Symbol-Agent        Symbol-Agent
+|                   |                   |
++-------------------+-------------------+
+                    ↓
+          SymbolAgentOutput ها
+                    ↓
+               Meta-Agent
+                    ↓
+            PortfolioDecision
+                    ↓
+          PortfolioActionBuilder
+                    ↓
+             PortfolioAction
+                    ↓
+                 f06_env
+                    ↓
+               Execution Layer
+
+و وضعیت Portfolio:
+
+f06_env / PortfolioState
+            ↓
+PortfolioContextAdapter
+            ↓
+      PortfolioContext
+            ↓
+          Meta-Agent
+
+
+============================================================
+1. f07_agents/contracts.py
+============================================================
+
+نقش:
+مرجع مرکزی تمام Data Contract های Decision Layer.
+
+این فایل منطق تصمیم‌گیری ندارد.
+Execution ندارد.
+Broker/MT5 ندارد.
+Risk Engine ندارد.
+
+قراردادهای اصلی:
+
+DecisionMode
+    حالت‌های:
+    train
+    optimize
+    backtest
+    replay
+    eval
+    shadow
+    paper
+    live
+
+ModelIdentity
+    هویت و lineage مدل:
+    model_name
+    model_version
+    policy_version
+    config_version
+    experiment_id
+
+AgentObservation
+    ورودی Symbol-Agent.
+    متعلق به یک symbol مشخص.
+    دارای:
+    symbol
+    base_tf
+    timestamp
+    values
+    feature_names
+    metadata
+
+SymbolContext
+    وضعیت محلی یک symbol برای Symbol-Agent.
+    شامل وضعیت position و اطلاعات محلی symbol.
+    نباید Portfolio-wide information باشد.
+
+PolicyOutput
+    خروجی خام Policy مربوط به Symbol-Agent.
+    شامل:
+    signal
+    confidence
+    expected_return
+    risk_score
+    desired_exposure
+    metadata
+
+SymbolAgentOutput
+    خروجی رسمی Symbol-Agent.
+    شامل تصمیم symbol-level به همراه:
+    timestamp
+    mode
+    model identity
+    decision_id
+    signal
+    confidence
+    expected_return
+    risk_score
+    desired_exposure
+
+PortfolioContext
+    وضعیت global Portfolio برای Meta-Agent.
+    شامل:
+    equity
+    balance
+    used_margin
+    free_margin
+    margin_level
+    drawdown
+    daily_drawdown
+    exposure
+    concentration
+    correlation
+    risk_blocked
+    mode
+
+MetaPolicyOutput
+    خروجی خام Policy مربوط به Meta-Agent.
+    شامل:
+    capital_allocation
+    margin_allocation
+    target_exposure
+    target_signals
+    portfolio_risk
+    reason_codes
+
+PortfolioDecision
+    تصمیم نهایی Meta-Agent.
+    هنوز Order نیست.
+    هنوز Execution نیست.
+    مرز تصمیم‌گیری Portfolio با لایه پایین‌تر است.
+    شامل:
+    approved
+    timestamp
+    mode
+    decision_id
+    capital_allocation
+    margin_allocation
+    target_exposure
+    target_signals
+    portfolio_risk
+    reason_codes
+    model
+
+============================================================
+2. f07_agents/agent_state.py
+============================================================
+
+نقش:
+نگهداری Runtime State مربوط به Agentها.
+
+این فایل تصمیم نمی‌گیرد.
+Contract اصلی ارتباطی هم نیست.
+وضعیت runtime را نگهداری می‌کند.
+
+SymbolAgentState:
+    state مستقل هر Symbol-Agent.
+
+    شامل:
+    symbol
+    decision_count
+    error_count
+    trades_count
+    last_signal
+    last_confidence
+    last_expected_return
+    last_risk_score
+    last_desired_exposure
+    cumulative_reward
+    last_decision_at
+    last_error
+    model
+    mode
+
+    عملیات:
+    record_decision()
+    record_error()
+    add_reward()
+    reset()
+
+MetaAgentState:
+    runtime state کل Portfolio Decision Layer.
+
+    شامل:
+    decision_count
+    approved_count
+    rejected_count
+    error_count
+    cumulative_reward
+    equity
+    drawdown
+    total_exposure
+    capital_allocation
+    margin_allocation
+    last_decision_at
+    last_rejection_reason
+    last_error
+    model
+    mode
+
+    عملیات:
+    record_decision()
+    record_error()
+    add_reward()
+    reset()
+
+اصل مهم:
+هر Symbol-Agent state مستقل است.
+Meta-Agent state مربوط به کل Portfolio است.
+
+
+============================================================
+3. f07_agents/symbol_agent.py
+============================================================
+
+نقش:
+اجرای یک Symbol-Agent مستقل برای یک symbol.
+
+مالک:
+تحلیل و تصمیم symbol-level.
+
+ورودی:
+    AgentObservation
+    SymbolContext
+    decision_id
+    Policy
+
+خروجی:
+    SymbolAgentOutput
+
+Symbol-Agent اجازه ندارد:
+    capital allocation کل Portfolio را تعیین کند.
+    correlation بین نمادها را مدیریت کند.
+    Portfolio risk را تعیین کند.
+    execution انجام دهد.
+    broker را صدا بزند.
+
+هر instance فقط یک symbol را نمایندگی می‌کند.
+
+ساختار اصلی:
+
+SymbolAgentConfig
+    symbol
+    mode
+    model
+    min_confidence
+    enabled
+
+SymbolPolicy
+    interface مربوط به Policy.
+    نقطه اتصال آینده به:
+        RL Policy
+        Neural Network
+        Transformer
+        Ensemble
+        ...
+
+SymbolAgent
+    decide()
+    update_reward()
+    reset()
+
+decide():
+    observation را برای همان symbol بررسی می‌کند.
+    Policy را صدا می‌زند.
+    خروجی را validate می‌کند.
+    confidence guardrail را اعمال می‌کند.
+    SymbolAgentOutput تولید می‌کند.
+    runtime state را update می‌کند.
+
+نکته:
+RL algorithm نباید در خود SymbolAgent hard-code شود.
+Policy باید قابل تعویض باشد.
+
+
+============================================================
+4. f07_agents/meta_agent.py
+============================================================
+
+نقش:
+تصمیم‌گیرنده سطح Portfolio.
+
+ورودی:
+    SymbolAgentOutput های چند نماد
+    PortfolioContext
+    MetaPolicy
+    decision_id
+
+وظایف:
+
+    ترکیب خروجی Symbol-Agent ها
+    مشاهده وضعیت کل Portfolio
+    allocation
+    margin allocation
+    exposure
+    concentration
+    correlation
+    portfolio risk
+    drawdown guard
+    risk blocking
+    تولید PortfolioDecision
+
+Meta-Agent execution انجام نمی‌دهد.
+
+ساختار:
+
+MetaAgentConfig
+    mode
+    model
+    max_total_allocation
+    max_symbol_allocation
+    max_total_exposure
+    max_portfolio_risk
+    high_correlation_threshold
+    max_correlated_allocation
+    max_drawdown
+
+MetaPolicy
+    interface Policy سطح Portfolio.
+    نقطه اتصال آینده به:
+        RL Meta-Policy
+        Transformer
+        Attention
+        Ensemble
+        ...
+
+MetaAgent
+    decide()
+    update_reward()
+    reset()
+
+Meta-Agent دو سطح را از هم جدا می‌کند:
+
+Symbol-Level Intelligence
+        ↓
+Portfolio-Level Intelligence
+
+اصل مهم:
+Meta-Agent می‌تواند allocation نمادها را تعیین یا اصلاح کند،
+اما execution متعلق به این فایل نیست.
+
+
+============================================================
+5. f07_agents/decision_engine.py
+============================================================
+
+نقش:
+Orchestrator کل چرخه تصمیم‌گیری چندنمادی.
+
+این فایل خود Agent نیست.
+وظیفه‌اش هماهنگ کردن Agentهاست.
+
+ورودی:
+    Observation هر symbol
+    SymbolContext هر symbol
+    PortfolioContext
+    decision_id
+
+فرآیند:
+
+    Observation XAUUSD → XAUUSD Symbol-Agent ┐
+    Observation EURUSD → EURUSD Symbol-Agent ├→ Meta-Agent
+    Observation GBPUSD → GBPUSD Symbol-Agent ┘
+
+کنترل‌های مهم:
+
+    symbol matching
+    وجود تمام symbolها
+    symbol isolation
+    timestamp مشترک
+    تطابق timestamp Observation و Portfolio
+    mode consistency
+    decision_id consistency
+
+خروجی:
+    PortfolioDecision
+
+State قابل Audit:
+
+    last_symbol_outputs
+    last_decision
+    decision_count
+
+عملیات:
+
+    decide()
+    get_symbol_agent()
+    get_last_symbol_output()
+    reset()
+
+اصل مهم:
+Decision Engine فقط orchestration است.
+Execution ندارد.
+Portfolio accounting ندارد.
+Broker ندارد.
+
+
+============================================================
+6. f07_agents/action_builder.py
+============================================================
+
+نقش:
+تبدیل تصمیم معنایی Meta-Agent به
+PortfolioAction قابل فهم برای f06_env.
+
+مرز:
+
+PortfolioDecision
+        ↓
+PortfolioActionBuilder
+        ↓
+f06_env.PortfolioAction
+
+این فایل execution انجام نمی‌دهد.
+
+مشکل مهمی که جدا شده:
+PortfolioDecision ممکن است exposure بدهد،
+اما f06_env به target_lots نیاز دارد.
+
+بنابراین:
+
+PositionSizer
+    یک interface قابل تزریق است.
+
+PositionSizer:
+    exposure
+        ↓
+    target lots
+
+این باعث می‌شود بعداً sizing بر اساس مواردی مانند:
+    equity
+    volatility
+    contract specification
+    risk budget
+    margin
+    leverage
+    stop distance
+    instrument rules
+
+قابل تعویض باشد.
+
+PortfolioActionBuilder:
+
+    اگر Decision رد شده باشد:
+        PortfolioAction خالی
+
+    اگر symbol نامعتبر باشد:
+        reject
+
+    اگر signal = 0:
+        target_lots = 0
+
+    اگر signal != 0:
+        PositionSizer حجم را تعیین می‌کند.
+
+خروجی:
+    f06_env.PortfolioAction
+
+اصل مهم:
+Action Builder فقط translation است،
+نه Risk Engine،
+نه Execution Engine.
+
+
+============================================================
+7. f07_agents/portfolio_context_adapter.py
+============================================================
+
+نقش:
+تبدیل وضعیت واقعی Portfolio در f06_env
+به PortfolioContext مورد نیاز Meta-Agent.
+
+مسیر:
+
+f06_env.PortfolioState
+        ↓
+PortfolioContextAdapter
+        ↓
+f07_agents.PortfolioContext
+        ↓
+Meta-Agent
+
+این فایل:
+
+    accounting نمی‌کند.
+    PnL را محاسبه نمی‌کند.
+    margin را محاسبه نمی‌کند.
+    risk را محاسبه نمی‌کند.
+
+فقط state موجود را منتقل می‌کند.
+
+اطلاعات منتقل‌شده:
+
+    equity
+    balance
+    used_margin
+    free_margin
+    margin_level
+    drawdown
+    daily_drawdown
+
+اطلاعات Portfolio-level خارجی نیز می‌تواند از بیرون وارد شود:
+
+    exposure
+    concentration
+    correlation
+    risk_blocked
+
+علت:
+محاسبه این مفاهیم نباید در Adapter حدس زده شود.
+منبع آنها باید لایه تخصصی مربوطه باشد.
+
+اصل بسیار مهم:
+PortfolioState در f06_env منبع حقیقت accounting است.
+f07_agents فقط context تصمیم‌گیری می‌سازد.
+
+
+============================================================
+DEPENDENCY GRAPH
+============================================================
+
+contracts.py
+    ↑
+    ├── agent_state.py
+    ├── symbol_agent.py
+    ├── meta_agent.py
+    └── decision_engine.py
+
+agent_state.py
+    ↑
+    ├── symbol_agent.py
+    └── meta_agent.py
+
+symbol_agent.py
+    ↑
+    └── decision_engine.py
+
+meta_agent.py
+    ↑
+    └── decision_engine.py
+
+portfolio_context_adapter.py
+    ↓
+PortfolioContext
+    ↓
+meta_agent.py
+
+decision_engine.py
+    ↓
+PortfolioDecision
+    ↓
+action_builder.py
+    ↓
+f06_env.PortfolioAction
+
+
+============================================================
+FINAL ROLE OF CHAPTER 3
+============================================================
+
+f07_agents مسئول "تصمیم‌گیری" است.
+
+f06_env مسئول "محیط، state، transition و execution simulation" است.
+
+در نتیجه:
+
+f04_features
+    ↓
+Observation
+    ↓
+f07_agents
+    ↓
+Symbol-Agent
+    ↓
+Meta-Agent
+    ↓
+PortfolioDecision
+    ↓
+PortfolioAction
+    ↓
+f06_env
+    ↓
+Execution / Portfolio State
+
+
+فصل 3 نباید شامل:
+    MT5
+    Broker
+    Order Sending
+    Execution Simulation
+    PnL Accounting
+
+
+فصل 3 باید مستقل از Execution باقی بماند.
+
+
+============================================================
+IMPORTANT DESIGN PRINCIPLES
+============================================================
+
+1. Symbol-Agent ها مستقل از یکدیگرند.
+
+2. Meta-Agent تنها لایه‌ای است که Portfolio-wide information
+   را برای تصمیم‌گیری جمع می‌کند.
+
+3. RL Policy باید قابل تعویض باشد؛
+   Agent نباید به یک الگوریتم خاص RL قفل شود.
+
+4. Position sizing قابل تعویض است.
+
+5. Decision باید قابل Audit و Replay باشد.
+
+6. timestamp در هر decision cycle باید سازگار باشد.
+
+7. model identity و experiment lineage باید حفظ شوند.
+
+8. train / optimize / backtest / replay / eval /
+   shadow / paper / live باید همان معماری تصمیم‌گیری را
+   با policy/runtime متفاوت استفاده کنند.
+
+9. هیچ Agent نباید مستقیماً Broker را صدا بزند.
+
+10. تصمیم Portfolio با اجرای معامله دو لایه مستقل هستند.
+
+============================================================
