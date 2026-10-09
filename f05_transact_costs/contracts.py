@@ -130,58 +130,6 @@ class MarketQuote:
         raise ValueError("side must be -1 or 1")
 
 
-""" Deleted:
-@dataclass(frozen=True, slots=True)
-class InstrumentSpec:
-    '''Normalized instrument data resolved from the project's symbol-spec source.'''
-
-    symbol: str
-    pip_size: float
-    tick_size: float
-    tick_value: float
-    tick_value_currency: str
-    contract_size: float | None = None
-    volume_min: float | None = None
-    volume_step: float | None = None
-    volume_max: float | None = None
-
-    def __post_init__(self) -> None:
-        symbol = _symbol(self.symbol)
-        pip_size = _finite(self.pip_size, "pip_size", minimum=0.0, strict=True)
-        tick_size = _finite(self.tick_size, "tick_size", minimum=0.0, strict=True)
-        tick_value = _finite(self.tick_value, "tick_value", minimum=0.0, strict=True)
-        currency = _currency(self.tick_value_currency, "tick_value_currency")
-
-        normalized: dict[str, float] = {}
-        for name, value in (
-            ("contract_size", self.contract_size),
-            ("volume_min", self.volume_min),
-            ("volume_step", self.volume_step),
-            ("volume_max", self.volume_max),
-        ):
-            if value is not None:
-                normalized[name] = _finite(value, name, minimum=0.0, strict=True)
-
-        if "volume_min" in normalized and "volume_max" in normalized:
-            if normalized["volume_min"] > normalized["volume_max"]:
-                raise ValueError("volume_min must be <= volume_max")
-        if "volume_step" in normalized and "volume_max" in normalized:
-            if normalized["volume_step"] > normalized["volume_max"]:
-                raise ValueError("volume_step must be <= volume_max")
-
-        object.__setattr__(self, "symbol", symbol)
-        object.__setattr__(self, "pip_size", pip_size)
-        object.__setattr__(self, "tick_size", tick_size)
-        object.__setattr__(self, "tick_value", tick_value)
-        object.__setattr__(self, "tick_value_currency", currency)
-        for name, value in normalized.items():
-            object.__setattr__(self, name, value)
-
-    @property
-    def value_per_price_unit_per_lot(self) -> float:
-        return self.tick_value / self.tick_size
-"""
-
 @dataclass(frozen=True, slots=True)
 class CommissionModel:
     """Commission schedule expressed in its native currency."""
