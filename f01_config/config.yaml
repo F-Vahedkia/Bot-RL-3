@@ -667,7 +667,7 @@ transaction_costs:
   account_currency_source: project.base_currency
 
   simulation:
-  
+
     spread:
       source: historical_bid_ask
       require_quote: true
@@ -679,7 +679,9 @@ transaction_costs:
       cap_pips: 3.0
 
     commission:
-      basis: per_lot
+      basis: per_lot  # fixed:            مبلغ ثابت هر بار فراخوانی محاسبهٔ کمیسیون 
+                      # per_lot:          نرخ × تعداد لات
+                      # percent_notional: نرخ × ارزش اسمی معامله
       rate: 7.0
       currency: USD
       minimum: 0.0
@@ -697,10 +699,10 @@ transaction_costs:
     spread:
       source: broker
     slippage:
-      source: broker   # slippage واقعی از execution/fill بروکر می‌آید.
-      cap_pips: 3.0   # آستانه کنترل است، نه clamp کردن قیمت واقعی.
-      cap_policy: tolerance   # این عدد سقف پذیرش/کنترل است، نه تغییر fill.
-      on_exceed: flag_and_reconcile   # اگر slippage واقعی بیشتر شد:
+      source: broker               # slippage واقعی از execution/fill بروکر می‌آید.
+      cap_pips: 3.0               # آستانه کنترل است، نه clamp کردن قیمت واقعی.
+      cap_policy: tolerance            # این عدد سقف پذیرش/کنترل است، نه تغییر fill.
+      on_exceed: flag_and_reconcile       # اگر slippage واقعی بیشتر شد:
     commission:
       source: broker
 
