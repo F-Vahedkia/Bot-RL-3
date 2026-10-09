@@ -416,3 +416,23 @@ net/gross risk semantics، risk-per-trade/SL در صورت نهایی‌شدن �
 audit/lineage، mode-awareness، سناریوهای چندنمادی پیچیده، End-to-End و final review/closure است.
 
 ================================================================================================ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+آدرس ها در گست هاب:
+--------------------
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/نام فایل.py

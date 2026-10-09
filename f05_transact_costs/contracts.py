@@ -1,3 +1,6 @@
+# f05_transact_costs/contracts.py (1)
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,6 +9,7 @@ from enum import Enum
 import math
 from typing import Any
 
+from f03_data.instrument_specs import InstrumentSpec
 
 class FillRole(str, Enum):
     ENTRY = "entry"
@@ -126,9 +130,10 @@ class MarketQuote:
         raise ValueError("side must be -1 or 1")
 
 
+""" Deleted:
 @dataclass(frozen=True, slots=True)
 class InstrumentSpec:
-    """Normalized instrument data resolved from the project's symbol-spec source."""
+    '''Normalized instrument data resolved from the project's symbol-spec source.'''
 
     symbol: str
     pip_size: float
@@ -175,7 +180,7 @@ class InstrumentSpec:
     @property
     def value_per_price_unit_per_lot(self) -> float:
         return self.tick_value / self.tick_size
-
+"""
 
 @dataclass(frozen=True, slots=True)
 class CommissionModel:

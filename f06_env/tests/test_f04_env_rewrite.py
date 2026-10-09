@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from f03_data.mtf_dataset import MTFDataset
+from f03_data.instrument_specs import InstrumentSpec
 from f06_env import (
     EnvironmentConfig,
     ExecutionCost,
@@ -13,7 +15,6 @@ from f06_env import (
     PositionIntent,
     TradingEnvironment,
 )
-from f03_data.mtf_dataset import MTFDataset
 
 
 def make_dataset(symbol: str = "EURUSD") -> MTFDataset:
@@ -35,18 +36,25 @@ def make_dataset(symbol: str = "EURUSD") -> MTFDataset:
     return ds
 
 
-def symbol_spec() -> dict:
-    return {
-        "digits": 5,
-        "point": 1e-5,
-        "trade_tick_value": 1.0,
-        "trade_tick_size": 1e-5,
-        "contract_size": 100000.0,
-        "volume_min": 0.01,
-        "volume_step": 0.01,
-        "volume_max": 100.0,
-        "currency_profit": "USD",
-    }
+def instrument_spec() -> InstrumentSpec:
+    return InstrumentSpec(
+        symbol="EURUSD",
+        pip_size=0.0001,
+        tick_size=0.00001,
+        tick_value=1.0,
+        tick_value_currency="USD",
+        contract_size=100000.0,
+        volume_min=0.01,
+        volume_step=0.01,
+        volume_max=100.0,
+        digits=5,
+        point=0.00001,
+        currency_base="EUR",
+        currency_profit="USD",
+        currency_margin="EUR",
+        account_currency="USD",
+        source="test",
+    )
 
 
 def make_env() -> TradingEnvironment:
@@ -59,7 +67,7 @@ def make_env() -> TradingEnvironment:
     return TradingEnvironment.from_mtf_datasets(
         observations={"EURUSD": observations},
         datasets={"EURUSD": ds},
-        symbol_specs={"EURUSD": symbol_spec()},
+        instruments={"EURUSD": instrument_spec()},
         config=EnvironmentConfig(leverage=100.0, window_size=1),
         execution_costs={"EURUSD": ExecutionCost(slippage_price=0.00002, commission=7.0)},
     )
@@ -110,6 +118,7 @@ def test_dataframe_observation_clock_must_match_quote_clock():
         TradingEnvironment.from_mtf_datasets(
             observations={"EURUSD": observations},
             datasets={"EURUSD": ds},
-            symbol_specs={"EURUSD": symbol_spec()},
+            instruments={"EURUSD": instrument_spec()},
             config=EnvironmentConfig(window_size=1),
         )
+

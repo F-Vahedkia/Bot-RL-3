@@ -4,7 +4,8 @@ from collections.abc import Mapping
 from datetime import datetime
 from typing import Protocol
 
-from .contracts import InstrumentSpec, MarketQuote
+from f03_data.instrument_specs import InstrumentSpec
+from .contracts import MarketQuote
 
 
 class HistoricalQuoteProvider(Protocol):
@@ -24,31 +25,62 @@ class CurrencyConversionProvider(Protocol):
 
 
 class MappingInstrumentResolver:
-    """Resolver over an already-loaded symbol-spec mapping; it never reads files."""
+    """
+    Resolve an already-normalized canonical instrument catalog.
 
-    def __init__(self, symbol_specs: Mapping[str, Mapping[str, object]], *, default_tick_value_currency: str | None = None) -> None:
-        self._specs = {str(k).strip().upper(): dict(v) for k, v in symbol_specs.items()}
-        self._default_currency = None if default_tick_value_currency is None else str(default_tick_value_currency).strip().upper()
+    This resolver does not:
+        - derive pip_size or tick_size;
+        - infer currencies;
+        - read configuration or snapshot files;
+        - perform MT5 or network I/O.
+
+    All instrument normalization belongs to f03_data.
+    """
+
+    def __init__(
+        self,
+        instruments: Mapping[str, InstrumentSpec],
+    ) -> None:
+        if not isinstance(instruments, Mapping):
+            raise TypeError("instruments must be a mapping")
+
+        resolved: dict[str, InstrumentSpec] = {}
+
+        for raw_symbol, instrument in instruments.items():
+            symbol = str(raw_symbol).strip().upper()
+
+            if not symbol:
+                raise ValueError("instrument catalog contains an empty symbol")
+
+            if symbol in resolved:
+                raise ValueError(
+                    f"duplicate symbol after normalization: {symbol}"
+                )
+
+            if not isinstance(instrument, InstrumentSpec):
+                raise TypeError(
+                    f"instruments[{symbol}] must be canonical InstrumentSpec"
+                )
+
+            if instrument.symbol != symbol:
+                raise ValueError(
+                    f"instrument symbol {instrument.symbol!r} "
+                    f"does not match catalog key {symbol!r}"
+                )
+
+            resolved[symbol] = instrument
+
+        self._instruments = resolved
 
     def resolve(self, *, symbol: str) -> InstrumentSpec:
         key = str(symbol).strip().upper()
-        if key not in self._specs:
-            raise KeyError(f"unknown symbol specification: {key}")
-        raw = self._specs[key]
-        digits = int(raw.get("digits", 0))
-        tick_size = float(raw["trade_tick_size"])
-        pip_size = float(raw.get("pip_size", tick_size * (10.0 if digits in (3, 5) else 1.0)))
-        currency = raw.get("tick_value_currency", self._default_currency)
-        if currency is None:
-            raise KeyError(f"missing tick_value_currency for {key}")
-        return InstrumentSpec(
-            symbol=key,
-            pip_size=pip_size,
-            tick_size=tick_size,
-            tick_value=float(raw["trade_tick_value"]),
-            tick_value_currency=str(currency),
-            contract_size=(None if raw.get("contract_size") is None else float(raw["contract_size"])),
-            volume_min=(None if raw.get("volume_min") is None else float(raw["volume_min"])),
-            volume_step=(None if raw.get("volume_step") is None else float(raw["volume_step"])),
-            volume_max=(None if raw.get("volume_max") is None else float(raw["volume_max"])),
-        )
+
+        if not key:
+            raise ValueError("symbol is required")
+
+        try:
+            return self._instruments[key]
+        except KeyError as exc:
+            raise KeyError(
+                f"unknown canonical instrument: {key}"
+            ) from exc

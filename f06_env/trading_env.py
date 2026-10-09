@@ -5,12 +5,14 @@ from typing import Mapping, Optional, Sequence
 import numpy as np
 import pandas as pd
 
+
+from f03_data.instrument_specs import InstrumentSpec
+from f05_transact_costs.contracts import MarketQuote
+
 from f06_env.contracts import EnvironmentConfig, PortfolioAction, StepResult
 from f06_env.execution_simulator import ExecutionCost, ExecutionSimulator
 from f06_env.historical_quote_resolver import HistoricalQuoteResolver
 from f06_env.portfolio_state import PortfolioState, PositionState
-from f05_transact_costs.contracts import InstrumentSpec, MarketQuote
-
 
 ObservationLike = np.ndarray | pd.DataFrame
 
@@ -77,6 +79,7 @@ class TradingEnvironment:
         self._truncated = False
         self._episode_index = -1
 
+
     @staticmethod
     def _normalize_observations(
         observations: Mapping[str, ObservationLike],
@@ -112,6 +115,7 @@ class TradingEnvironment:
             arrays[symbol] = values
         return arrays, indices
 
+
     @staticmethod
     def _normalize_quotes(
         market_quotes: Mapping[str, Sequence[MarketQuote]],
@@ -135,6 +139,7 @@ class TradingEnvironment:
             result[symbol] = tuple(normalized)
         return result
 
+
     @staticmethod
     def _normalize_instruments(
         instruments: Mapping[str, InstrumentSpec],
@@ -148,6 +153,7 @@ class TradingEnvironment:
                 raise ValueError(f"instrument symbol {instrument.symbol!r} != mapping key {symbol!r}")
             result[symbol] = instrument
         return result
+
 
     def _validate_timelines(self) -> int:
         lengths = {symbol: len(quotes) for symbol, quotes in self.quotes.items()}
@@ -171,50 +177,145 @@ class TradingEnvironment:
                     raise ValueError(f"observation and quote timestamps must match exactly for {symbol}")
         return n_steps
 
+
     @classmethod
     def from_mtf_datasets(
         cls,
         *,
         observations: Mapping[str, ObservationLike],
         datasets: Mapping[str, object],
-        symbol_specs: Mapping[str, Mapping[str, object]],
+        instruments: Mapping[str, InstrumentSpec],
         config: EnvironmentConfig,
         quote_timeframes: Optional[Mapping[str, str] | str] = None,
         execution: Optional[ExecutionSimulator] = None,
         execution_costs: Optional[Mapping[str, ExecutionCost]] = None,
         margin_rates_to_account: Optional[Mapping[str, float]] = None,
     ) -> "TradingEnvironment":
+        if not observations:
+            raise ValueError("observations must not be empty")
+
+        if not datasets:
+            raise ValueError("datasets must not be empty")
+
+        if not instruments:
+            raise ValueError("instruments must not be empty")
+
+        # --------------------------------------------------------------
+        # Normalize and validate the canonical instrument catalog.
+        # --------------------------------------------------------------
+        canonical_instruments: dict[str, InstrumentSpec] = {}
+
+        for raw_symbol, instrument in instruments.items():
+            key = str(raw_symbol).upper().strip()
+
+            if not key:
+                raise ValueError("instrument catalog contains an empty symbol")
+
+            if key in canonical_instruments:
+                raise ValueError(
+                    f"duplicate instrument symbol after normalization: {key}"
+                )
+
+            if not isinstance(instrument, InstrumentSpec):
+                raise TypeError(
+                    f"instruments[{key}] must be canonical InstrumentSpec"
+                )
+
+            if instrument.symbol != key:
+                raise ValueError(
+                    f"instrument symbol {instrument.symbol!r} "
+                    f"does not match catalog key {key!r}"
+                )
+
+            canonical_instruments[key] = instrument
+
+        observation_symbols = {
+            str(symbol).upper().strip()
+            for symbol in observations
+        }
+
+        if set(canonical_instruments) != observation_symbols:
+            raise ValueError(
+                "observations and instruments must contain exactly the same symbols"
+            )
+
+        # --------------------------------------------------------------
+        # Normalize the dataset catalog without changing the datasets.
+        # --------------------------------------------------------------
+        datasets_by_symbol: dict[str, object] = {}
+
+        for raw_symbol, dataset in datasets.items():
+            key = str(raw_symbol).upper().strip()
+
+            if not key:
+                raise ValueError("dataset catalog contains an empty symbol")
+
+            if key in datasets_by_symbol:
+                raise ValueError(
+                    f"duplicate dataset symbol after normalization: {key}"
+                )
+
+            datasets_by_symbol[key] = dataset
+
+        if not observation_symbols.issubset(datasets_by_symbol):
+            missing = sorted(
+                observation_symbols - set(datasets_by_symbol)
+            )
+            raise KeyError(
+                f"datasets missing required symbols: {missing}"
+            )
+
+        if isinstance(quote_timeframes, Mapping):
+            quote_timeframes_by_symbol = {
+                str(symbol).upper().strip(): timeframe
+                for symbol, timeframe in quote_timeframes.items()
+            }
+        else:
+            quote_timeframes_by_symbol = None
+
         quotes: dict[str, tuple[MarketQuote, ...]] = {}
-        instruments: dict[str, InstrumentSpec] = {}
+        resolved_instruments: dict[str, InstrumentSpec] = {}
+
         for symbol, obs in observations.items():
             key = str(symbol).upper().strip()
-            dataset = datasets[key]
-            if isinstance(quote_timeframes, Mapping):
-                quote_tf = quote_timeframes.get(key)
+
+            dataset = datasets_by_symbol[key]
+            instrument = canonical_instruments[key]
+
+            if quote_timeframes_by_symbol is not None:
+                quote_tf = quote_timeframes_by_symbol.get(key)
             else:
                 quote_tf = quote_timeframes
+
             index = cls._extract_observation_index(obs)
+
             if index is None:
                 raise ValueError(
-                    "from_mtf_datasets requires pandas observation DataFrames so the candle observation clock is explicit"
+                    "from_mtf_datasets requires pandas observation DataFrames "
+                    "so the candle observation clock is explicit"
                 )
+
             resolver = HistoricalQuoteResolver(
                 dataset=dataset,
-                symbol_spec=symbol_specs[key],
+                instrument=instrument,
                 quote_timeframe=quote_tf,
             )
+
             bundle = resolver.resolve(index)
+
             quotes[key] = bundle.quotes
-            instruments[key] = bundle.instrument
+            resolved_instruments[key] = bundle.instrument
+
         return cls(
             observations=observations,
             market_quotes=quotes,
-            instruments=instruments,
+            instruments=resolved_instruments,
             config=config,
             execution=execution,
             execution_costs=execution_costs,
             margin_rates_to_account=margin_rates_to_account,
         )
+
 
     @staticmethod
     def _extract_observation_index(observation: ObservationLike) -> pd.DatetimeIndex | None:
@@ -224,12 +325,15 @@ class TradingEnvironment:
             raise TypeError("observation DataFrame index must be DatetimeIndex")
         return observation.index
 
+
     def _current_observation(self) -> np.ndarray:
         arrays = [self.observations[symbol][self._t].reshape(-1) for symbol in self.symbols]
         return np.concatenate(arrays).astype(np.float32, copy=False)
 
+
     def _current_quotes(self) -> dict[str, MarketQuote]:
         return {symbol: self.quotes[symbol][self._t] for symbol in self.symbols}
+
 
     def _current_mark_quotes(self) -> dict[str, MarketQuote]:
         result: dict[str, MarketQuote] = {}
@@ -237,12 +341,14 @@ class TradingEnvironment:
             result[symbol] = self.quotes[symbol][self._t]
         return result
 
+
     def _calculate_unrealized(self) -> float:
         return self.execution.mark_to_market(
             positions=self.portfolio.positions,
             quotes=self._current_mark_quotes(),
             instruments=self.instruments,
         )
+
 
     def _calculate_used_margin(self) -> float:
         total = 0.0
@@ -262,6 +368,7 @@ class TradingEnvironment:
                 / self.config.leverage
             )
         return float(total)
+
 
     def reset(self, *, seed: Optional[int] = None) -> tuple[np.ndarray, dict]:
         if seed is not None:
@@ -286,6 +393,7 @@ class TradingEnvironment:
             "equity": self.portfolio.equity,
             "free_margin": self.portfolio.free_margin,
         }
+
 
     def step(self, action: PortfolioAction) -> StepResult:
         if self._terminated or self._truncated:
@@ -380,3 +488,4 @@ class TradingEnvironment:
             truncated=self._truncated,
             info=info,
         )
+

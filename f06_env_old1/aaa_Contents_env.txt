@@ -30,14 +30,14 @@ f06_env/tests/trading_env_e2e_tester_A.py `
 
 آدرس فایل های هسته در گیت هاب:
 --------------------------------
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/contracts.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/portfolio_state.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/execution_simulator.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/trading_env.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/contracts.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/portfolio_state.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/execution_simulator.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/trading_env.py
 
 آدرس فایل های تستر در گیت هاب:
 --------------------------------
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/tests/portfolio_state_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/tests/trading_env_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f06_env/tests/trading_env_e2e_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/tests/portfolio_state_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/tests/trading_env_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f06_env/tests/trading_env_e2e_tester_A.py
 

@@ -1,16 +1,14 @@
-from __future__ import annotations
+# f06_env/historical_quote_resolver.py
 
+from __future__ import annotations
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Mapping
 
 import numpy as np
 import pandas as pd
 
 from f03_data.mtf_dataset import MTFDataset
-from f05_transact_costs.contracts import CostSource, InstrumentSpec, MarketQuote
-from f05_transact_costs.providers import MappingInstrumentResolver
-
+from f05_transact_costs.contracts import CostSource, MarketQuote
+from f03_data.instrument_specs import InstrumentSpec
 
 @dataclass(frozen=True, slots=True)
 class HistoricalQuoteBundle:
@@ -31,9 +29,10 @@ class HistoricalQuoteResolver:
         self,
         *,
         dataset: MTFDataset,
-        symbol_spec: Mapping[str, object],
+        instrument: InstrumentSpec,
         quote_timeframe: str | None = None,
     ) -> None:
+        
         if not isinstance(dataset, MTFDataset):
             raise TypeError("dataset must be MTFDataset")
         self.dataset = dataset
@@ -42,24 +41,32 @@ class HistoricalQuoteResolver:
         if not self.quote_timeframe:
             raise ValueError("quote_timeframe is required")
 
-        raw = dict(symbol_spec)
-        self.point = self._resolve_point(raw)
-        normalized = dict(raw)
-        if "tick_value_currency" not in normalized:
-            currency = normalized.get("currency_profit") or normalized.get("currency_base")
-            if currency is not None:
-                normalized["tick_value_currency"] = currency
-        self.instrument = MappingInstrumentResolver({self.symbol: normalized}).resolve(symbol=self.symbol)
+        if not isinstance(instrument, InstrumentSpec):
+            raise TypeError(
+                "instrument must be canonical InstrumentSpec"
+            )
 
-    @staticmethod
-    def _resolve_point(raw: Mapping[str, object]) -> float:
-        point = raw.get("point")
-        if point is None:
-            raise KeyError("historical symbol spec requires point")
-        point = float(point)
+        if instrument.symbol != self.symbol:
+            raise ValueError(
+                f"instrument symbol {instrument.symbol!r} "
+                f"does not match dataset symbol {self.symbol!r}"
+            )
+
+        if instrument.point is None:
+            raise ValueError(
+                f"canonical instrument point is required for {self.symbol}"
+            )
+
+        point = float(instrument.point)
+
         if not np.isfinite(point) or point <= 0.0:
-            raise ValueError("symbol point must be positive and finite")
-        return point
+            raise ValueError(
+                f"canonical instrument point must be positive and finite for {self.symbol}"
+            )
+
+        self.point = point
+        self.instrument = instrument
+
 
     @staticmethod
     def _to_utc_index(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
@@ -71,6 +78,7 @@ class HistoricalQuoteResolver:
         if not out.is_monotonic_increasing or out.has_duplicates:
             raise ValueError("observation_index must be unique and increasing")
         return out
+
 
     def resolve(self, observation_index: pd.DatetimeIndex) -> HistoricalQuoteBundle:
         obs_index = self._to_utc_index(observation_index)

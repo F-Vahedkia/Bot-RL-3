@@ -129,3 +129,19 @@ RiskEngine مستقیماً PortfolioDecision را مصرف می‌کند و
 ===================================================================================================
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+آدرس ها در گست هاب:
+--------------------
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f07_agents/contracts.py

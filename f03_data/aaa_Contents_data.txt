@@ -121,10 +121,10 @@ ZZZ_using_data_handler.py
 آدرس فایل های اصلی در گیت هاب:
 --------------------------------
 
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mt5_connector.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mt5_data_loader_E.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/data_handler_G.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/mtf_dataset.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/live_market_engine.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/mt5_connector.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/mt5_data_loader_E.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/data_handler_G.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/mtf_dataset.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/live_market_engine.py
 
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f03_data/data_layer_functions.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f03_data/data_layer_functions.py

@@ -173,10 +173,45 @@ def test_deterministic_slippage_is_event_stable() -> None:
     assert a.sample_pips(event_key="x") != a.sample_pips(event_key="y")
 
 
+# -----------------------------------------------------------------------------------------------------------
 def test_mapping_instrument_resolver() -> None:
-    resolver = MappingInstrumentResolver({"EURUSD": {"digits": 5, "trade_tick_size": 0.00001, "trade_tick_value": 1.0, "tick_value_currency": "USD"}})
-    assert resolver.resolve(symbol="eurusd").symbol == "EURUSD"
+    spec = instrument()
 
+    resolver = MappingInstrumentResolver(
+        {"EURUSD": spec}
+    )
+
+    # Resolver must return the canonical object unchanged.
+    assert resolver.resolve(symbol="eurusd") is spec
+
+
+def test_mapping_instrument_resolver_rejects_raw_mapping() -> None:
+    with pytest.raises(
+        TypeError,
+        match="must be canonical InstrumentSpec",
+    ):
+        MappingInstrumentResolver(
+            {
+                "EURUSD": {
+                    "digits": 5,
+                    "trade_tick_size": 0.00001,
+                    "trade_tick_value": 1.0,
+                    "tick_value_currency": "USD",
+                }
+            }
+        )
+
+
+def test_mapping_instrument_resolver_rejects_symbol_mismatch() -> None:
+    with pytest.raises(
+        ValueError,
+        match="does not match catalog key",
+    ):
+        MappingInstrumentResolver(
+            {"GBPUSD": instrument()}
+        )
+        
+# -----------------------------------------------------------------------------------------------------------
 
 def test_ledger_partial_fill_reconciliation() -> None:
     calc = TransactionCostCalculator(); ledger = TransactionCostLedger()

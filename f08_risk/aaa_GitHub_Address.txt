@@ -1,4 +1,4 @@
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/
 
 
 
@@ -12,60 +12,60 @@ f08_risk/stop_loss_risk.py
 
 
 
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/action_builder.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/audit.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/contracts.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/limits.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/margin_calculator.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/position_sizing.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/projection_margin.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/risk_based_position_sizing.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/risk_context.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/risk_engine.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/risk_mode_policy.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/risk_projection.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/state.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/stop_loss_cost.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/stop_loss_position_sizing.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/stop_loss_risk.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/action_builder.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/audit.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/contracts.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/limits.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/margin_calculator.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/position_sizing.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/projection_margin.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/risk_based_position_sizing.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/risk_context.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/risk_engine.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/risk_mode_policy.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/risk_projection.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/state.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/stop_loss_cost.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/stop_loss_position_sizing.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/stop_loss_risk.py
 
 
 
 
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/f08_risk_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/margin_calculator_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/position_sizing_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/projection_margin_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/risk_context_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/risk_engine_instrument_margin_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/risk_engine_projection_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/risk_projection_margin_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i0prev/risk_projection_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i10/risk_engine_end_to_end_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/margin_calculator_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/position_sizing_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/projection_margin_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/risk_context_symbol_position_count_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/risk_engine_portfolio_risk_boundary_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/risk_engine_position_count_boundary_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/risk_engine_symbol_position_count_boundary_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i1_i2/risk_projection_symbol_position_count_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i3/risk_engine_account_hard_guard_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i4/risk_engine_hard_soft_conflict_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i5/net_exposure_direction_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i5/risk_engine_net_exposure_direction_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/risk_based_position_sizing_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_cost_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_exposure_alignment_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_position_sizing_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_risk_cap_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_risk_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i6/stop_loss_risk_request_decision_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i7/risk_audit_modification_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i7/risk_audit_record_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i7/risk_audit_trail_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i7/risk_engine_audit_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i8/risk_engine_mode_policy_integration_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i8/risk_mode_policy_contract_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i9/risk_engine_multi_symbol_conflict_tester_A.py
-https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/original/f08_risk/tests_ch4_i9/risk_engine_three_symbol_conflict_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/f08_risk_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/margin_calculator_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/position_sizing_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/projection_margin_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/risk_context_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/risk_engine_instrument_margin_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/risk_engine_projection_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/risk_projection_margin_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i0prev/risk_projection_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i10/risk_engine_end_to_end_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/margin_calculator_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/position_sizing_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/projection_margin_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/risk_context_symbol_position_count_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/risk_engine_portfolio_risk_boundary_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/risk_engine_position_count_boundary_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/risk_engine_symbol_position_count_boundary_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i1_i2/risk_projection_symbol_position_count_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i3/risk_engine_account_hard_guard_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i4/risk_engine_hard_soft_conflict_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i5/net_exposure_direction_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i5/risk_engine_net_exposure_direction_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/risk_based_position_sizing_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_cost_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_exposure_alignment_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_position_sizing_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_risk_cap_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_risk_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i6/stop_loss_risk_request_decision_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i7/risk_audit_modification_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i7/risk_audit_record_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i7/risk_audit_trail_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i7/risk_engine_audit_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i8/risk_engine_mode_policy_integration_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i8/risk_mode_policy_contract_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i9/risk_engine_multi_symbol_conflict_tester_A.py
+https://raw.githubusercontent.com/F-Vahedkia/Bot-RL-3/refs/heads/main/f08_risk/tests_ch4_i9/risk_engine_three_symbol_conflict_tester_A.py
