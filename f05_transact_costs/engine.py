@@ -1,3 +1,5 @@
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,10 +10,20 @@ from .contracts import CommissionModel, CostRealization, CostSource, ExecutionFi
 from .models import SlippageModel
 
 
+
 @dataclass(frozen=True, slots=True)
 class SimulationExecutionCostEngine:
     calculator: TransactionCostCalculator
     slippage_model: SlippageModel
+    charge_on_entry: bool = True
+    charge_on_exit: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.charge_on_entry, bool):
+            raise TypeError("charge_on_entry must be bool")
+        if not isinstance(self.charge_on_exit, bool):
+            raise TypeError("charge_on_exit must be bool")
+
 
     def execute(
         self,
@@ -59,6 +71,8 @@ class SimulationExecutionCostEngine:
             request,
             realization=CostRealization.EXPECTED,
             price_costs_embedded_in_fill=True,
+            charge_on_entry=self.charge_on_entry,
+            charge_on_exit=self.charge_on_exit,
         )
         market_price = request.market_price
         fill_price = market_price + slippage if side > 0 else market_price - slippage
@@ -82,6 +96,7 @@ class SimulationExecutionCostEngine:
         )
 
 
+
 @dataclass(frozen=True, slots=True)
 class LiveObservedExecutionCostEngine:
     calculator: TransactionCostCalculator
@@ -96,19 +111,27 @@ class LiveObservedExecutionCostEngine:
         cap = float(self.slippage_cap_pips)
         if not math.isfinite(cap) or cap < 0.0:
             raise ValueError("slippage_cap_pips must be finite and >= 0")
+        
         cap_policy = str(self.cap_policy).strip().lower()
         if cap_policy != "tolerance":
             raise ValueError("cap_policy must be tolerance")
+        
         on_exceed = str(self.on_exceed).strip().lower()
-        if on_exceed not in {"flag_and_reconcile", "reject"}:
-            raise ValueError("on_exceed must be flag_and_reconcile or reject")
+        if on_exceed != "flag_and_reconcile":
+            raise ValueError(
+                "live observed fills must use flag_and_reconcile; "
+                "a broker fill cannot be rejected after execution"
+            )
+
         model_version = str(self.model_version).strip()
         if not model_version:
             raise ValueError("model_version is required")
+        
         object.__setattr__(self, "slippage_cap_pips", cap)
         object.__setattr__(self, "cap_policy", cap_policy)
         object.__setattr__(self, "on_exceed", on_exceed)
         object.__setattr__(self, "model_version", model_version)
+
 
     def observe(
         self,
@@ -137,8 +160,10 @@ class LiveObservedExecutionCostEngine:
 
         if quote.source is not CostSource.BROKER:
             raise ValueError("live observed engine requires broker quote source")
+        
         if execution_timestamp is None:
             raise TypeError("execution_timestamp is required")
+        
         fill_price = float(fill_price)
         if not math.isfinite(fill_price) or fill_price <= 0.0:
             raise ValueError("fill_price must be positive and finite")
@@ -149,8 +174,7 @@ class LiveObservedExecutionCostEngine:
         adverse_slippage = max(0.0, signed_slippage)
         cap_price = self.slippage_cap_pips * instrument.pip_size
         cap_exceeded = adverse_slippage > cap_price
-        if cap_exceeded and self.on_exceed == "reject":
-            raise ValueError("observed adverse slippage exceeds configured cap")
+
 
         fee_currency = account_currency if observed_fee == 0.0 and observed_fee_currency is None else observed_fee_currency
         if fee_currency is None:
@@ -198,3 +222,4 @@ class LiveObservedExecutionCostEngine:
             model_version=self.model_version,
             slippage_cap_exceeded=cap_exceeded,
         )
+

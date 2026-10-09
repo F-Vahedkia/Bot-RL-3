@@ -40,8 +40,25 @@ class ExecutionCost:
 class ExecutionSimulator:
     """Candle-time simulation state transition using executable bid/ask quotes."""
 
-    def __init__(self, *, default_cost: ExecutionCost | None = None) -> None:
-        self.default_cost = default_cost or ExecutionCost()
+    def __init__(
+        self,
+        *,
+        default_cost: ExecutionCost | None = None,
+        charge_on_entry: bool = True,
+        charge_on_exit: bool = True,
+    ) -> None:
+        if not isinstance(charge_on_entry, bool):
+            raise TypeError("charge_on_entry must be bool")
+
+        if not isinstance(charge_on_exit, bool):
+            raise TypeError("charge_on_exit must be bool")
+
+        self.default_cost = (
+            default_cost if default_cost is not None else ExecutionCost()
+        )
+        self.charge_on_entry = charge_on_entry
+        self.charge_on_exit = charge_on_exit
+
 
     @staticmethod
     def _classify(old_side: int, old_lots: float, new_side: int, new_lots: float) -> ExecutionType | None:
@@ -57,6 +74,7 @@ class ExecutionSimulator:
             return None
         return ExecutionType.REVERSE
 
+
     @staticmethod
     def _fill_price(quote: MarketQuote, side: int, slippage_price: float) -> float:
         base = quote.ask if side > 0 else quote.bid
@@ -64,6 +82,7 @@ class ExecutionSimulator:
         if not np.isfinite(price) or price <= 0.0:
             raise ValueError("computed fill price must be positive and finite")
         return float(price)
+
 
     @staticmethod
     def _pnl(
@@ -80,6 +99,7 @@ class ExecutionSimulator:
             * lots
             * instrument.value_per_price_unit_per_lot
         )
+
 
     def execute(
         self,
@@ -101,6 +121,13 @@ class ExecutionSimulator:
         if position.symbol != intent.symbol or quote.symbol != intent.symbol or instrument.symbol != intent.symbol:
             raise ValueError("position, intent, quote and instrument symbols must match")
         cost = cost or self.default_cost
+
+        entry_commission = (
+            cost.commission if self.charge_on_entry else 0.0
+        )
+        exit_commission = (
+            cost.commission if self.charge_on_exit else 0.0
+        )
 
         old_side = int(position.side)
         old_lots = float(position.lots)
@@ -130,7 +157,7 @@ class ExecutionSimulator:
             position.side = new_side
             position.lots = new_lots
             position.entry_price = fill_price
-            total_commission = cost.commission
+            total_commission = entry_commission
             total_slippage = cost.slippage_price
 
         elif transition is ExecutionType.CLOSE:
@@ -149,7 +176,7 @@ class ExecutionSimulator:
             position.lots = 0.0
             position.entry_price = None
             position.stop_price = None
-            total_commission = cost.commission
+            total_commission = exit_commission
             total_slippage = cost.slippage_price
 
         elif transition is ExecutionType.INCREASE:
@@ -161,7 +188,7 @@ class ExecutionSimulator:
                 float(old_entry) * old_lots + fill_price * added_lots
             ) / new_lots
             position.lots = new_lots
-            total_commission = cost.commission
+            total_commission = entry_commission
             total_slippage = cost.slippage_price
 
         elif transition is ExecutionType.REDUCE:
@@ -177,7 +204,7 @@ class ExecutionSimulator:
                 instrument=instrument,
             )
             position.lots = new_lots
-            total_commission = cost.commission
+            total_commission = exit_commission
             total_slippage = cost.slippage_price
 
         elif transition is ExecutionType.REVERSE:
@@ -197,21 +224,24 @@ class ExecutionSimulator:
             position.side = new_side
             position.lots = new_lots
             position.entry_price = open_fill
-            total_commission = 2.0 * cost.commission
+            total_commission = entry_commission + exit_commission
             total_slippage = 2.0 * cost.slippage_price
 
-        position.realized_pnl += realized_pnl - total_commission
+        accounting_realized_delta = realized_pnl - total_commission
+        position.realized_pnl += accounting_realized_delta
         position.stop_price = intent.stop_price
 
         return {
             "changed": True,
             "execution_type": transition.value,
             "realized_pnl": float(realized_pnl),
+            "accounting_realized_delta": float(accounting_realized_delta),
             "commission": float(total_commission),
             "slippage": float(total_slippage),
             "fill_price": fill_price,
             "quote_timestamp": quote.timestamp,
         }
+
 
     def mark_to_market(
         self,
@@ -248,3 +278,5 @@ class ExecutionSimulator:
             position.unrealized_pnl = pnl
             total += pnl
         return float(total)
+
+

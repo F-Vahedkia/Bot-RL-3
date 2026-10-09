@@ -1,3 +1,5 @@
+
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -14,6 +16,7 @@ from f06_env import (
     PortfolioAction,
     PositionIntent,
     TradingEnvironment,
+    ExecutionSimulator,
 )
 
 
@@ -57,7 +60,10 @@ def instrument_spec() -> InstrumentSpec:
     )
 
 
-def make_env() -> TradingEnvironment:
+def make_env(
+    *,
+    execution: ExecutionSimulator | None = None,
+) -> TradingEnvironment:
     ds = make_dataset()
     observations = pd.DataFrame(
         np.zeros((5, 2), dtype=np.float32),
@@ -69,6 +75,7 @@ def make_env() -> TradingEnvironment:
         datasets={"EURUSD": ds},
         instruments={"EURUSD": instrument_spec()},
         config=EnvironmentConfig(leverage=100.0, window_size=1),
+        execution=execution,
         execution_costs={"EURUSD": ExecutionCost(slippage_price=0.00002, commission=7.0)},
     )
 
@@ -121,4 +128,47 @@ def test_dataframe_observation_clock_must_match_quote_clock():
             instruments={"EURUSD": instrument_spec()},
             config=EnvironmentConfig(window_size=1),
         )
+
+
+def test_entry_commission_reaches_portfolio_accounting() -> None:
+    env = make_env()
+    env.reset()
+
+    result = env.step(
+        PortfolioAction(
+            (PositionIntent("EURUSD", 1, 1.0),)
+        )
+    )
+
+    execution_info = result.info["execution"]["EURUSD"]
+
+    assert execution_info["commission"] == pytest.approx(7.0)
+    assert execution_info["realized_pnl"] == pytest.approx(0.0)
+    assert execution_info["accounting_realized_delta"] == pytest.approx(-7.0)
+
+    assert env.portfolio.balance == pytest.approx(9993.0)
+    assert env.portfolio.realized_pnl == pytest.approx(-7.0)
+
+
+def test_disabled_entry_charge_does_not_disable_exit_policy() -> None:
+    execution = ExecutionSimulator(
+        charge_on_entry=False,
+        charge_on_exit=True,
+    )
+
+    env = make_env(execution=execution)
+    env.reset()
+
+    result = env.step(
+        PortfolioAction(
+            (PositionIntent("EURUSD", 1, 1.0),)
+        )
+    )
+
+    execution_info = result.info["execution"]["EURUSD"]
+
+    assert execution_info["commission"] == pytest.approx(0.0)
+    assert execution_info["accounting_realized_delta"] == pytest.approx(0.0)
+    assert env.portfolio.balance == pytest.approx(10000.0)
+
 

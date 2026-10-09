@@ -1,3 +1,5 @@
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,6 +21,7 @@ class CostComponents:
     simulation_commission: CommissionModel
 
 
+
 def build_components(config: TransactionCostConfig, *, project_random_seed: int) -> CostComponents:
     if not isinstance(config, TransactionCostConfig):
         raise TypeError("config must be TransactionCostConfig")
@@ -36,10 +39,20 @@ def build_components(config: TransactionCostConfig, *, project_random_seed: int)
         seed=int(project_random_seed),
     )
     calculator = TransactionCostCalculator()
+
     return CostComponents(
         calculator=calculator,
-        round_trip_estimator=RoundTripCostEstimator(calculator),
-        simulation_engine=SimulationExecutionCostEngine(calculator, slippage),
+        round_trip_estimator=RoundTripCostEstimator(
+            calculator,
+            charge_on_entry=sim.charge_on_entry,
+            charge_on_exit=sim.charge_on_exit,
+        ),
+        simulation_engine=SimulationExecutionCostEngine(
+            calculator,
+            slippage,
+            charge_on_entry=sim.charge_on_entry,
+            charge_on_exit=sim.charge_on_exit,
+        ),
         live_engine=LiveObservedExecutionCostEngine(
             calculator,
             slippage_cap_pips=config.live.slippage_cap_pips,
@@ -48,3 +61,4 @@ def build_components(config: TransactionCostConfig, *, project_random_seed: int)
         ),
         simulation_commission=commission,
     )
+

@@ -3,9 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .contracts import (
-    CommissionBasis,
     CostRealization,
+    CostSource,
     ExecutionFill,
+    FillRole,
     TransactionCostBreakdown,
     TransactionCostRequest,
 )
@@ -23,25 +24,56 @@ class TransactionCostCalculator:
         *,
         realization: CostRealization | str,
         price_costs_embedded_in_fill: bool,
+        charge_on_entry: bool = True,
+        charge_on_exit: bool = True,
     ) -> TransactionCostBreakdown:
         if not isinstance(request, TransactionCostRequest):
             raise TypeError("request must be TransactionCostRequest")
+
         if not isinstance(price_costs_embedded_in_fill, bool):
             raise TypeError("price_costs_embedded_in_fill must be bool")
 
+        if not isinstance(charge_on_entry, bool):
+            raise TypeError("charge_on_entry must be bool")
+
+        if not isinstance(charge_on_exit, bool):
+            raise TypeError("charge_on_exit must be bool")
+
+        charge_enabled = (
+            charge_on_entry
+            if request.role is FillRole.ENTRY
+            else charge_on_exit
+        )
+
+        # Spread and slippage remain real per-fill price costs.
         price_value = request.price_value_per_unit
         spread_cost = request.spread_price * price_value * request.lots
         slippage_cost = request.slippage_price * price_value * request.lots
-        commission_native = request.commission_model.amount(
-            lots=request.lots,
-            notional=request.commission_notional,
-        )
-        commission = commission_native * request.commission_to_account_rate
-        additional_fee = request.additional_fee * request.additional_fee_to_account_rate
+
+        # Entry/exit policy controls modeled commission and additional fee,
+        # not the executable fill price or the presence of spread/slippage.
+        if charge_enabled:
+            commission_native = request.commission_model.amount(
+                lots=request.lots,
+                notional=request.commission_notional,
+            )
+            commission = (
+                commission_native * request.commission_to_account_rate
+            )
+            additional_fee = (
+                request.additional_fee
+                * request.additional_fee_to_account_rate
+            )
+        else:
+            commission = 0.0
+            additional_fee = 0.0
+
         price_cost_total = spread_cost + slippage_cost
+
         cash_cost_total = commission + additional_fee
         if not price_costs_embedded_in_fill:
             cash_cost_total += price_cost_total
+
         total_cost = price_cost_total + commission + additional_fee
 
         return TransactionCostBreakdown(
@@ -59,6 +91,7 @@ class TransactionCostCalculator:
             account_currency=request.account_currency,
         )
 
+
     def build_fill(
         self,
         request: TransactionCostRequest,
@@ -69,16 +102,45 @@ class TransactionCostCalculator:
         source: str,
         model_version: str,
         broker_order_id: str | None = None,
+        charge_on_entry: bool = True,
+        charge_on_exit: bool = True,
     ) -> ExecutionFill:
+        source_value = (
+            source.value
+            if isinstance(source, CostSource)
+            else str(source).strip().lower()
+        )
+
+        if source_value != CostSource.SIMULATION.value:
+            raise ValueError(
+                "build_fill only supports simulation fills; "
+                "use LiveObservedExecutionCostEngine.observe "
+                "for authoritative broker fills"
+            )
+
+        if broker_order_id is not None:
+            raise ValueError(
+                "broker_order_id is not valid for simulated fills"
+            )
+
         cost = self.calculate(
             request,
-            realization=CostRealization.EXPECTED if source == "simulation" else CostRealization.ACTUAL,
+            realization=CostRealization.EXPECTED,
             price_costs_embedded_in_fill=True,
+            charge_on_entry=charge_on_entry,
+            charge_on_exit=charge_on_exit,
         )
+
         market_price = request.market_price
-        fill_price = market_price + request.slippage_price if request.side > 0 else market_price - request.slippage_price
+        fill_price = (
+            market_price + request.slippage_price
+            if request.side > 0
+            else market_price - request.slippage_price
+        )
+
         if not math.isfinite(fill_price) or fill_price <= 0.0:
             raise ValueError("fill_price must be positive and finite")
+
         return ExecutionFill(
             execution_id=execution_id,
             fill_id=fill_id,
@@ -94,7 +156,7 @@ class TransactionCostCalculator:
             quote_timestamp=request.quote.timestamp,
             execution_timestamp=timestamp,
             cost=cost,
-            source=source,
-            broker_order_id=broker_order_id,
+            source=CostSource.SIMULATION,
             model_version=model_version,
         )
+

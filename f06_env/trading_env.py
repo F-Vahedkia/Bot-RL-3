@@ -425,7 +425,7 @@ class TradingEnvironment:
                 instrument=self.instruments[symbol],
                 cost=self.execution_costs.get(symbol),
             )
-            realized_delta += float(result["realized_pnl"])
+            realized_delta += float(result["accounting_realized_delta"])
             execution_info[symbol] = result
 
         next_t = self._t + 1

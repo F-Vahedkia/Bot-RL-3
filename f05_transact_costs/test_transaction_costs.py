@@ -1,4 +1,6 @@
-from dataclasses import FrozenInstanceError
+
+
+from dataclasses import FrozenInstanceError, replace
 from datetime import datetime, timezone
 import math
 
@@ -30,13 +32,14 @@ def raw_config() -> dict:
                 "slippage": {"model": "normal_capped", "mean_pips": 2.0, "std_pips": 1.0, "cap_pips": 3.0},
                 "commission": {"basis": "per_lot", "rate": 7.0, "currency": "USD", "minimum": 0.0},
                 "additional_fee": {"value": 0.0, "currency": "USD"},
+                "cost_application": {"charge_on_entry": True, "charge_on_exit": True},
             },
             "live": {
                 "spread": {"source": "broker"},
                 "slippage": {"source": "broker", "cap_pips": 3.0, "cap_policy": "tolerance", "on_exceed": "flag_and_reconcile"},
                 "commission": {"source": "broker"},
             },
-            "accounting": {"charge_on_entry": True, "charge_on_exit": True, "price_costs_embedded_in_fill": True},
+            "accounting": {"price_costs_embedded_in_fill": True},
             "deterministic": {"seed_source": "project.random_seed"},
         },
     }
@@ -71,6 +74,87 @@ def test_config_roundtrip() -> None:
     assert cfg.live.slippage_cap_policy == "tolerance"
     assert cfg.live.slippage_on_exceed == "flag_and_reconcile"
     assert TransactionCostConfig.resolve_account_currency(raw_config()) == "USD"
+
+
+def test_accounting_rejects_unembedded_fill_costs() -> None:
+    raw = raw_config()
+    raw["transaction_costs"]["accounting"][
+        "price_costs_embedded_in_fill"
+    ] = False
+
+    with pytest.raises(
+        ValueError,
+        match="must be true",
+    ):
+        TransactionCostConfig.from_mapping(raw)
+
+
+@pytest.mark.parametrize(
+    ("role", "charge_entry", "charge_exit", "expected_commission"),
+    [
+        (FillRole.ENTRY, False, True, 0.0),
+        (FillRole.ENTRY, True, False, 7.0),
+        (FillRole.EXIT, True, False, 0.0),
+        (FillRole.EXIT, False, True, 7.0),
+    ],
+)
+def test_calculator_applies_entry_exit_charge_policy(
+    role,
+    charge_entry,
+    charge_exit,
+    expected_commission,
+) -> None:
+    request = replace(
+        req(role=role),
+        additional_fee=2.0,
+    )
+
+    result = TransactionCostCalculator().calculate(
+        request,
+        realization="expected",
+        price_costs_embedded_in_fill=True,
+        charge_on_entry=charge_entry,
+        charge_on_exit=charge_exit,
+    )
+
+    assert result.commission == pytest.approx(expected_commission)
+
+    expected_fee = (
+        2.0
+        if (
+            role is FillRole.ENTRY and charge_entry
+        ) or (
+            role is FillRole.EXIT and charge_exit
+        )
+        else 0.0
+    )
+
+    assert result.additional_fee == pytest.approx(expected_fee)
+
+    # Price costs remain present regardless of commission policy.
+    assert result.spread_cost == pytest.approx(5.0)
+    assert result.slippage_cost == pytest.approx(2.0)
+    assert result.total_cost == pytest.approx(
+        7.0 + expected_commission + expected_fee
+    )
+
+
+def test_factory_passes_simulation_charge_policy() -> None:
+    from .factory import build_components
+
+    raw = raw_config()
+    raw["transaction_costs"]["simulation"]["cost_application"][
+        "charge_on_entry"
+    ] = False
+
+    cfg = TransactionCostConfig.from_mapping(raw)
+    components = build_components(cfg, project_random_seed=42)
+
+    assert components.simulation_engine.charge_on_entry is False
+    assert components.simulation_engine.charge_on_exit is True
+
+    assert components.round_trip_estimator.charge_on_entry is False
+    assert components.round_trip_estimator.charge_on_exit is True
 
 
 def test_quote_and_instrument() -> None:
@@ -117,6 +201,7 @@ def test_live_engine_price_improvement_has_zero_adverse_slippage() -> None:
     )
     assert fill.cost.slippage_price == 0.0
     assert fill.cost.realization.value == "actual"
+    assert fill.cost.commission == pytest.approx(7.0)
 
 
 def test_live_engine_cap_breach_preserves_authoritative_broker_fill() -> None:
@@ -271,20 +356,32 @@ def test_ledger_reconciliation_propagates_cap_breach_without_changing_fill() -> 
     assert actual.fill_price == 1.10050
 
 
-def test_live_engine_reject_policy_still_rejects_cap_breach() -> None:
-    engine = LiveObservedExecutionCostEngine(
-        TransactionCostCalculator(),
-        3.0,
-        cap_policy="tolerance",
-        on_exceed="reject",
-    )
-    with pytest.raises(ValueError):
-        engine.observe(
-            execution_id="e-reject", fill_id="bf-reject", broker_order_id="bo-reject",
-            symbol="EURUSD", side=1, role=FillRole.ENTRY, lots=1,
-            quote=quote(CostSource.BROKER), instrument=instrument(), tick_value_to_account_rate=1.0,
-            fill_price=1.10050, observed_commission=7.0, observed_commission_currency="USD",
-            commission_to_account_rate=1.0, account_currency="USD", execution_timestamp=TS,
+# def test_live_engine_reject_policy_still_rejects_cap_breach() -> None:  ########################
+#     engine = LiveObservedExecutionCostEngine(
+#         TransactionCostCalculator(),
+#         3.0,
+#         cap_policy="tolerance",
+#         on_exceed="reject",
+#     )
+#     with pytest.raises(ValueError):
+#         engine.observe(
+#             execution_id="e-reject", fill_id="bf-reject", broker_order_id="bo-reject",
+#             symbol="EURUSD", side=1, role=FillRole.ENTRY, lots=1,
+#             quote=quote(CostSource.BROKER), instrument=instrument(), tick_value_to_account_rate=1.0,
+#             fill_price=1.10050, observed_commission=7.0, observed_commission_currency="USD",
+#             commission_to_account_rate=1.0, account_currency="USD", execution_timestamp=TS,
+#         )
+
+def test_live_engine_reject_policy_is_rejected_at_construction() -> None:
+    with pytest.raises(
+        ValueError,
+        match="cannot be rejected after execution",
+    ):
+        LiveObservedExecutionCostEngine(
+            TransactionCostCalculator(),
+            3.0,
+            cap_policy="tolerance",
+            on_exceed="reject",
         )
 
 

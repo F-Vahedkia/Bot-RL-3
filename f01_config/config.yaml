@@ -667,6 +667,7 @@ transaction_costs:
   account_currency_source: project.base_currency
 
   simulation:
+  
     spread:
       source: historical_bid_ask
       require_quote: true
@@ -688,6 +689,10 @@ transaction_costs:
       value: 0.0
       currency: USD
 
+    cost_application:
+      charge_on_entry: true
+      charge_on_exit: true
+
   live:
     spread:
       source: broker
@@ -700,8 +705,6 @@ transaction_costs:
       source: broker
 
   accounting:
-    charge_on_entry: true
-    charge_on_exit: true
     # Spread/slippage are represented by the fill price. They must not be
     # subtracted a second time from realized PnL.
     price_costs_embedded_in_fill: true

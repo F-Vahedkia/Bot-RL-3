@@ -1,3 +1,8 @@
+
+# =============================================================================
+# Imports
+# =============================================================================
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,6 +10,9 @@ from collections.abc import Mapping
 import math
 from typing import Any
 
+# =============================================================================
+# Functions
+# =============================================================================
 
 def _required(m: Mapping[str, Any], key: str, path: str) -> Any:
     if key not in m:
@@ -52,6 +60,10 @@ def _bool(value: Any, path: str) -> bool:
     return value
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
 @dataclass(frozen=True, slots=True)
 class SimulationConfig:
     spread_source: str
@@ -66,6 +78,8 @@ class SimulationConfig:
     commission_minimum: float
     additional_fee: float
     additional_fee_currency: str
+    charge_on_entry: bool
+    charge_on_exit: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -80,9 +94,19 @@ class LiveConfig:
 
 @dataclass(frozen=True, slots=True)
 class AccountingConfig:
-    charge_on_entry: bool
-    charge_on_exit: bool
     price_costs_embedded_in_fill: bool
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.price_costs_embedded_in_fill, bool):
+            raise TypeError(
+                "accounting.price_costs_embedded_in_fill must be bool"
+            )
+
+        if not self.price_costs_embedded_in_fill:
+            raise ValueError(
+                "accounting.price_costs_embedded_in_fill must be true "
+                "for the current executable-fill architecture"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -159,12 +183,88 @@ class TransactionCostConfig:
         if _text(_required(live_commission, "source", "transaction_costs.live.commission"), "transaction_costs.live.commission.source") != "broker":
             raise ValueError("live.commission.source must be broker")
 
-        accounting = _mapping(_required(root, "accounting", "transaction_costs"), "transaction_costs.accounting")
-        accounting_cfg = AccountingConfig(
-            charge_on_entry=_bool(_required(accounting, "charge_on_entry", "transaction_costs.accounting"), "transaction_costs.accounting.charge_on_entry"),
-            charge_on_exit=_bool(_required(accounting, "charge_on_exit", "transaction_costs.accounting"), "transaction_costs.accounting.charge_on_exit"),
-            price_costs_embedded_in_fill=_bool(_required(accounting, "price_costs_embedded_in_fill", "transaction_costs.accounting"), "transaction_costs.accounting.price_costs_embedded_in_fill"),
+        # ----- accounting & accounting_cfg --------------------------------------------------------------------------- start
+        accounting = _mapping(
+            _required(root, "accounting", "transaction_costs"),
+            "transaction_costs.accounting",
         )
+
+        price_embedded = _bool(
+            _required(
+                accounting,
+                "price_costs_embedded_in_fill",
+                "transaction_costs.accounting",
+            ),
+            "transaction_costs.accounting.price_costs_embedded_in_fill",
+        )
+
+        accounting_cfg = AccountingConfig(
+            price_costs_embedded_in_fill=price_embedded,
+        )
+
+        # New canonical location:
+        # transaction_costs.simulation.cost_application
+        policy_raw = sim.get("cost_application")
+
+        if policy_raw is None:
+            # Backward-compatible parsing of the previous config layout.
+            # These legacy values now govern simulated/expected costs only.
+            charge_on_entry = _bool(
+                _required(
+                    accounting,
+                    "charge_on_entry",
+                    "transaction_costs.accounting",
+                ),
+                "transaction_costs.accounting.charge_on_entry",
+            )
+            charge_on_exit = _bool(
+                _required(
+                    accounting,
+                    "charge_on_exit",
+                    "transaction_costs.accounting",
+                ),
+                "transaction_costs.accounting.charge_on_exit",
+            )
+        else:
+            policy = _mapping(
+                policy_raw,
+                "transaction_costs.simulation.cost_application",
+            )
+
+            charge_on_entry = _bool(
+                _required(
+                    policy,
+                    "charge_on_entry",
+                    "transaction_costs.simulation.cost_application",
+                ),
+                "transaction_costs.simulation.cost_application.charge_on_entry",
+            )
+            charge_on_exit = _bool(
+                _required(
+                    policy,
+                    "charge_on_exit",
+                    "transaction_costs.simulation.cost_application",
+                ),
+                "transaction_costs.simulation.cost_application.charge_on_exit",
+            )
+
+            # Do not silently accept contradictory duplicate settings.
+            for name, new_value in (
+                ("charge_on_entry", charge_on_entry),
+                ("charge_on_exit", charge_on_exit),
+            ):
+                if name in accounting:
+                    legacy_value = _bool(
+                        accounting[name],
+                        f"transaction_costs.accounting.{name}",
+                    )
+                    if legacy_value != new_value:
+                        raise ValueError(
+                            f"conflicting settings for {name}: "
+                            "simulation.cost_application and legacy accounting"
+                        )
+        # ----- accounting & accounting_cfg --------------------------------------------------------------------------- end
+
         deterministic = _mapping(_required(root, "deterministic", "transaction_costs"), "transaction_costs.deterministic")
         seed_source = _text(_required(deterministic, "seed_source", "transaction_costs.deterministic"), "transaction_costs.deterministic.seed_source")
 
@@ -184,6 +284,8 @@ class TransactionCostConfig:
                 commission_minimum=minimum,
                 additional_fee=additional_fee,
                 additional_fee_currency=fee_currency,
+                charge_on_entry=charge_on_entry,
+                charge_on_exit=charge_on_exit,
             ),
             live=LiveConfig(
                 spread_source="broker",
@@ -201,3 +303,5 @@ class TransactionCostConfig:
     def resolve_account_currency(project_config: Mapping[str, Any]) -> str:
         project = _mapping(_required(project_config, "project", "root"), "root.project")
         return _currency(_required(project, "base_currency", "root.project"), "root.project.base_currency")
+
+# ============================================================================= END
