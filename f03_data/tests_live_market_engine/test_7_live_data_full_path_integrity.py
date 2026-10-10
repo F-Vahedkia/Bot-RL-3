@@ -841,9 +841,9 @@ def main() -> int:
     logger.info("[CONFIG] broker timezone = %s", broker_timezone)
 
     symbols = list(cfg["__symbols"])
-    print(f" ==================================== {symbols}")
+    print(f" ============================================================,,,= {symbols}")
     symbols = list(["BITCOIN", "ETHEREUM"])
-    print(f" ==================================== {symbols}")
+    print(f" ============================================================,,,= {symbols}")
     assert_true(
         symbols,
         "No symbols found in cfg['__symbols'].",
@@ -896,126 +896,6 @@ def main() -> int:
     # -----------------------------------------------------------------
     # 5. Start real Live MarketDataEngine
     # -----------------------------------------------------------------
-    # engine_errors: list[Exception] = []
-    # engine_thread = threading.Thread(                   # commented at 1405/07/18
-    #     target=engine.start(cfg["__warmups_dicts"]),
-    #     kwargs={
-    #         "poll_interval_sec": POLL_INTERVAL_SEC,
-    #     },
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-
-    # engine_thread = threading.Thread(                   # added at 1405/07/18 (1)
-    #     target=engine.start,
-    #     args=(cfg["__warmups_dicts"],),
-    #     kwargs={
-    #         "poll_interval_sec": POLL_INTERVAL_SEC,
-    #     },
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-    # logger.info("[ENGINE] Starting real MarketDataEngine...")
-    # engine_thread.start()
-
-    # ---------------------------------------------- added at 1405/07/18 (2) start
-    # engine_errors: list[Exception] = []
-
-    # def run_engine() -> None:
-    #     try:
-    #         engine.start(
-    #             warmups_dicts=cfg["__all_required_bars"],
-    #             poll_interval_sec=POLL_INTERVAL_SEC,
-    #         )
-    #     except Exception as exc:
-    #         engine_errors.append(exc)
-    #         logger.exception(
-    #             "[ENGINE] MarketDataEngine thread failed."
-    #         )
-
-    # engine_thread = threading.Thread(
-    #     target=run_engine,
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-
-    # logger.info("[ENGINE] Starting real MarketDataEngine...")
-
-    # engine_thread.start()
-    # ---------------------------------------------- added at 1405/07/18 (2) end
-
-    # ---------------------------------------------- added at 1405/07/18 (3) start
-    # engine_thread = threading.Thread(
-    #     target=engine.start,
-    #     args=(cfg["__all_required_bars"],),
-    #     kwargs={
-    #         "poll_interval_sec": POLL_INTERVAL_SEC,
-    #     },
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-    # ---------------------------------------------- added at 1405/07/18 (3) end
-
-    # # ---------------------------------------------- added at 1405/07/18 (4) start
-    # engine_thread_errors = []
-
-    # def run_engine_with_error_capture():
-    #     try:
-    #         engine.start(
-    #             cfg["__warmups_dicts"],
-    #             poll_interval_sec=POLL_INTERVAL_SEC,
-    #         )
-    #     except BaseException as exc:
-    #         engine_thread_errors.append(exc)
-    #         logger.exception(
-    #             "[ENGINE THREAD] MarketDataEngine.start() crashed"
-    #         )
-    #         raise
-    # engine_thread = threading.Thread(
-    #     target=run_engine_with_error_capture,
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-    # # ---------------------------------------------- added at 1405/07/18 (4) end
-
-
-    # # ---------------------------------------------- added at 1405/07/18 (5) start
-    # # -----------------------------------------------------------------
-    # # 5. Start real Live MarketDataEngine
-    # # -----------------------------------------------------------------
-
-    # # One shared error list: the engine runner writes here, and
-    # # test_symbol reads the same list.
-    # engine_errors: list[Exception] = []
-
-    # def run_engine() -> None:
-    #     try:
-    #         engine.start(
-    #             warmups_dicts=cfg["__all_required_bars"],
-    #             poll_interval_sec=POLL_INTERVAL_SEC,
-    #         )
-    #     except Exception as exc:
-    #         engine_errors.append(exc)
-    #         logger.exception(
-    #             "[ENGINE] MarketDataEngine thread failed."
-    #         )
-
-    # engine_thread = threading.Thread(
-    #     target=run_engine,
-    #     daemon=True,
-    #     name="test-live-market-engine",
-    # )
-
-    # logger.info("[ENGINE] Starting real MarketDataEngine...")
-    # engine_thread.start()
-
-    # results: Dict[str, Any] = {}
-    # # ---------------------------------------------- added at 1405/07/18 (5) end
-
-    # ---------------------------------------------- added at 1405/07/18 (6) start
-    # -----------------------------------------------------------------
-    # 5. Start real Live MarketDataEngine
-    # -----------------------------------------------------------------
     engine_errors: list[Exception] = []
 
     # فقط نمادهای انتخاب‌شده برای تست، با تمام کندل‌های موردنیازشان
@@ -1042,31 +922,24 @@ def main() -> int:
     )
 
     results: Dict[str, Any] = {}
-    # ---------------------------------------------- added at 1405/07/18 (6) end
-
-
-    results: Dict[str, Any] = {}
 
     try:
-        logger.info("[ENGINE] Starting real MarketDataEngine...")     # added (6)
-        engine_thread.start()                                         # added (6)
+        logger.info("[ENGINE] Starting real MarketDataEngine...")
+        engine_thread.start()
+
         # -------------------------------------------------------------
         # 6. Test every configured symbol
         # -------------------------------------------------------------
 
         for symbol in symbols:
-            # results[symbol] = test_symbol(           # commented at 05/07/18
-            #     symbol=symbol,
-            #     handler=data_handlers[symbol],
-            #     event_bus=event_bus,
-            # )
-            results[symbol] = test_symbol(           # added at 05/07/18
+            results[symbol] = test_symbol(
                 symbol=symbol,
                 handler=data_handlers[symbol],
                 event_bus=event_bus,
                 engine_thread=engine_thread,
                 engine_errors=engine_errors,
             )
+
         # -------------------------------------------------------------
         # 7. Final global validation
         # -------------------------------------------------------------

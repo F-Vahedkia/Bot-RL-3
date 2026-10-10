@@ -96,7 +96,7 @@ def docstring():
 
 # main_6_5.py
 # =============================================================================
-#    IMPORTS
+# Imports
 # =============================================================================
 from __future__ import annotations
 
@@ -254,6 +254,15 @@ class BotOrchestrator:
         # ✅ listener system (جدید)
         self._data_listeners: List[Callable[[Any], None]] = []
         self._stop_event = threading.Event()   # برای نگه‌داشتن نخ اصلی بدون polling
+
+        # ----------------------------- block-1 start
+        self._engine_thread: Optional[threading.Thread] = None
+        self._handler_threads: Dict[str, threading.Thread] = {}
+        self._engine_error: Optional[Exception] = None
+
+        # حداکثر زمان انتظار برای پایان همه threadها
+        self._thread_join_timeout_sec = 5.0
+        # ----------------------------- block-1 end
 
         # مؤلفه‌های اصلی
         self.engine: Optional[MarketDataEngine] = None
@@ -478,6 +487,36 @@ class BotOrchestrator:
             self.logger.info("MT5DataLoader initialized")
 
 
+    # --------------------------------- block-2 start
+    def _run_engine_thread(
+        self,
+        warmups_dicts: Dict[str, Dict[str, int]],
+        poll_interval: float,
+    ) -> None:
+        """Run the blocking engine and forward its failure to the orchestrator."""
+        try:
+            if self.engine is None:
+                raise RuntimeError(
+                    "MarketDataEngine is not initialized."
+                )
+
+            self.engine.start(
+                warmups_dicts,
+                poll_interval,
+            )
+
+        except Exception as exc:
+            self._engine_error = exc
+            self.logger.exception(
+                "MarketDataEngine thread failed: %s",
+                exc,
+            )
+
+        finally:
+            # هم در خروج عادی و هم در خطا، انتظار نخ اصلی آزاد شود.
+            self._stop_event.set()
+    # --------------------------------- block-2 start
+
     def start_live(
         self,
         symbols: List[str],
@@ -497,12 +536,36 @@ class BotOrchestrator:
 
         self._running = True
 
-        threading.Thread(
-            target=self.engine.start,
+        # threading.Thread(                             # deleted-1
+        #     target=self.engine.start,
+        #     args=(warmups_dicts, poll_interval),
+        #     daemon=True,
+        #     name="MarketDataEngine",
+        # ).start()
+
+        # ----------------------------- added-1 start
+        self._engine_error = None
+
+        self._engine_thread = threading.Thread(
+            target=self._run_engine_thread,
             args=(warmups_dicts, poll_interval),
             daemon=True,
             name="MarketDataEngine",
-        ).start()
+        )
+        self._engine_thread.start()
+
+        self._handler_threads.clear()
+
+        for symbol, handler in self.data_handlers.items():
+            thread = threading.Thread(
+                target=handler.start_consuming,
+                daemon=True,
+                name=f"DataHandler-{symbol}",
+            )
+            self._handler_threads[symbol] = thread
+            thread.start()
+
+        # ----------------------------- added-1 end
 
         for symbol, handler in self.data_handlers.items():
             threading.Thread(
@@ -609,6 +672,23 @@ class BotOrchestrator:
                 )
                 self._stop_event.wait()
 
+                # ---------------------------------------------------------------
+                # بررسی نتیجهٔ اجرای thread مربوط به MarketDataEngine
+                # --------------------------------------------------------------- start
+                if self._engine_error is not None:
+                    raise RuntimeError(
+                        "MarketDataEngine thread failed."
+                    ) from self._engine_error
+
+                # اگر موتور بدون درخواست توقف خاتمه یافته باشد،
+                # اجزای زنده را نیز متوقف کن.
+                if self._running:
+                    self.logger.error(
+                        "MarketDataEngine thread exited without a stop request."
+                    )
+                    self.stop()
+                # --------------------------------------------------------------- end
+
             elif self.mode in ["train", "backtest", "optimize", "evaluate"]:
 
                 configured_symbols = list(
@@ -659,7 +739,7 @@ class BotOrchestrator:
             raise
 
     # ---------------------------------------------------------------
-    def stop(self) -> None:
+    def stop_old1(self) -> None:
         self._running = False
         self.logger.info("Stopping Bot-RL-3...")
         if self.engine:
@@ -687,7 +767,79 @@ class BotOrchestrator:
         self._stop_event.set()   # آزاد کردن نخ اصلی
         self.logger.info("Bot-RL-3 stopped")
 
-    
+
+    def stop(self) -> None:
+        """Request shutdown and wait for live threads for a bounded time."""
+        self._running = False
+        self._stop_event.set()
+
+        self.logger.info("Stopping Bot-RL-3...")
+
+        # 1. درخواست توقف موتور فقط یک‌بار از orchestrator
+        if self.engine is not None:
+            try:
+                self.engine.stop()
+            except Exception:
+                self.logger.exception(
+                    "Failed to stop MarketDataEngine."
+                )
+
+        # 2. درخواست توقف مصرف‌کننده‌های داده
+        for symbol, handler in self.data_handlers.items():
+            try:
+                handler.stop_consuming()
+            except Exception:
+                self.logger.exception(
+                    "Failed to stop DataHandler for %s",
+                    symbol,
+                )
+
+        # 3. بستن وضعیت محلی DataSourceها بدون توقف مجدد
+        #    موتور و DataHandlerهای مشترک
+        for source in self.data_sources.values():
+            if isinstance(source, LiveDataSource):
+                source._running = False
+
+        # 4. انتظار محدود برای پایان threadها
+        threads = []
+
+        if self._engine_thread is not None:
+            threads.append(self._engine_thread)
+
+        threads.extend(self._handler_threads.values())
+
+        current_thread = threading.current_thread()
+        deadline = (
+            __import__("time").monotonic()
+            + self._thread_join_timeout_sec
+        )
+
+        for thread in threads:
+            if thread is current_thread or not thread.is_alive():
+                continue
+
+            remaining = max(
+                0.0,
+                deadline - __import__("time").monotonic(),
+            )
+
+            if remaining <= 0:
+                break
+
+            thread.join(timeout=remaining)
+
+        # 5. ثبت threadهایی که در مهلت تعیین‌شده پایان نیافته‌اند
+        for thread in threads:
+            if thread is not current_thread and thread.is_alive():
+                self.logger.error(
+                    "Thread did not stop within %.1f seconds: %s",
+                    self._thread_join_timeout_sec,
+                    thread.name,
+                )
+
+        self.logger.info("Bot-RL-3 shutdown sequence completed.")
+
+
     def shutdown(self) -> None:
         self.logger.info("Initiating shutdown...")
         self.stop()
@@ -861,3 +1013,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
