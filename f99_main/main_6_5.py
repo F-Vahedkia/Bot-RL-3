@@ -2,94 +2,94 @@
 # Date Reviewed:
 #     1405-05-22-22:00
 
+# =============================================================================
+# Main Orchestrator of Bot-RL-3
+# Docstring: start
+# ============================================================================= start
 """
-Main Orchestrator of Bot-RL-3
-"""
-def docstring():
+نقش تا الان:
+    ارکستراتور اصلی ربات معاملاتی که اجزای لایه‌های Data و Features
+    و سپس مسیرهای بالاتر سیستم را بر اساس mode هماهنگ می‌کند.
 
-    """
-    نقش تا الان:
-        ارکستراتور اصلی ربات معاملاتی که اجزای لایه‌های Data و Features
-        و سپس مسیرهای بالاتر سیستم را بر اساس mode هماهنگ می‌کند.
+معماری Feature:
+    برای هر Symbol یک مسیر مستقل ایجاد می‌شود:
 
-    معماری Feature:
-        برای هر Symbol یک مسیر مستقل ایجاد می‌شود:
+        DataHandler(symbol)
+            ↓
+        MTFDataset(symbol)
+            ↓
+        FeaturePipeline(symbol)
+            ↓
+        FeatureEngine(symbol)
+            ↓
+        FeatureStore
+            ↓
+        ObservationBuilder
+            ↓
+        Symbol-Agent
 
-            DataHandler(symbol)
-                ↓
-            MTFDataset(symbol)
-                ↓
-            FeaturePipeline(symbol)
-                ↓
-            FeatureEngine(symbol)
-                ↓
-            FeatureStore
-                ↓
-            ObservationBuilder
-                ↓
-            Symbol-Agent
+    در سطح بالاتر:
+        Symbol-Agentها
+            ↓
+        Meta-Agent
 
-        در سطح بالاتر:
-            Symbol-Agentها
-                ↓
-            Meta-Agent
+حالت‌های اجرایی:
+    live / paper / shadow
+    train / backtest / optimize / evaluate
+    download / health
 
-    حالت‌های اجرایی:
-        live / paper / shadow
-        train / backtest / optimize / evaluate
-        download / health
+اصول مهم:
+    - هر Symbol دارای DataHandler مستقل است.
+    - هر Symbol دارای FeaturePipeline مستقل است.
+    - هر FeaturePipeline از FeatureEngine مستقل همان Symbol استفاده می‌کند.
+    - FeaturePipeline، MTFDataset را از لایه Data دریافت می‌کند و خودش مسئول دریافت داده از DataHandler یا MarketDataEngine نیست.
+    - FeaturePipeline مسئول هماهنگ‌سازی FeatureEngine، FeatureStore و ObservationBuilder برای همان Symbol است.
+    - در حالت Live، داده‌ها از MarketDataEngine و EventBus به DataHandler همان Symbol می‌رسند و سپس به FeaturePipeline همان Symbol منتقل می‌شوند.
+    - mode و feature specifications در سطح orchestrator / pipeline تعیین شده و به FeatureEngine منتقل می‌شوند.
+    - FeatureEngine مسئول اجرای محاسبات Feature و نگهداری stateهای incremental مربوط به Live است.
+    - این فایل مسئول orchestration است و نباید منطق محاسبات اندیکاتورها یا ساخت Featureهای هر Symbol را در خود پیاده‌سازی کند.
 
-    اصول مهم:
-        - هر Symbol دارای DataHandler مستقل است.
-        - هر Symbol دارای FeaturePipeline مستقل است.
-        - هر FeaturePipeline از FeatureEngine مستقل همان Symbol استفاده می‌کند.
-        - FeaturePipeline، MTFDataset را از لایه Data دریافت می‌کند و خودش مسئول دریافت داده از DataHandler یا MarketDataEngine نیست.
-        - FeaturePipeline مسئول هماهنگ‌سازی FeatureEngine، FeatureStore و ObservationBuilder برای همان Symbol است.
-        - در حالت Live، داده‌ها از MarketDataEngine و EventBus به DataHandler همان Symbol می‌رسند و سپس به FeaturePipeline همان Symbol منتقل می‌شوند.
-        - mode و feature specifications در سطح orchestrator / pipeline تعیین شده و به FeatureEngine منتقل می‌شوند.
-        - FeatureEngine مسئول اجرای محاسبات Feature و نگهداری stateهای incremental مربوط به Live است.
-        - این فایل مسئول orchestration است و نباید منطق محاسبات اندیکاتورها یا ساخت Featureهای هر Symbol را در خود پیاده‌سازی کند.
+روش های اجرا:
+- MODE = live / paper / shadow
+    python -m main_6_4_orch_feat_comp --mode MODE --symbols EURUSD --timeframes M5
+    python -m main_6_4_orch_feat_comp --mode MODE --symbols EURUSD XAUUSD BITCOIN --timeframes M1 M5 H1
 
-    روش های اجرا:
-    - MODE = live / paper / shadow
-        python -m main_6_4_orch_feat_comp --mode MODE --symbols EURUSD --timeframes M5
-        python -m main_6_4_orch_feat_comp --mode MODE --symbols EURUSD XAUUSD BITCOIN --timeframes M1 M5 H1
+- MODE = train  / backtest / optimize / evaluate
+    python -m main_6_4_orch_feat_comp --mode train    --symbols XAUUSD --base_tf H1 --timeframes H1 H4 D1
+    python -m main_6_4_orch_feat_comp --mode backtest --symbols EURUSD --base_tf M1 --timeframes M1 M5 H1 --start 2024-01-01 --end 2024-12-31
+
+-Download
+    python -m main_6_4_orch_feat_comp --download --symbols EURUSD --timeframes M1 M5 --lookback 5000
+- Health check
+    python -m main_6_4_orch_feat_comp --health
+
+اجرا همراه با آدرس دهی فایل کانفیگ:
+    python -m main_6_4_orch_feat_comp --config [path to config.yaml] --mode live --symbols EURUSD --timeframes M5
+    python -m main_6_4_orch_feat_comp --config [path to config.yaml] --mode live --symbols EURUSD XAUUSD BITCOIN --timeframes M1 M5 H1
+
+=======================================
+برای آینده:
+-----------
+Main / Root Orchestrator
+    │
+    ├── Config
+    ├── Data
+    ├── Features
+    ├── Observation
+    ├── Machine Learning / Symbol-Agent
+    ├── Meta-Agent
+    ├── Risk Management
+    ├── Order / Execution
+    ├── Position Management
+    ├── Broker / MT5
+    └── Monitoring / Lifecycle
     
-    - MODE = train  / backtest / optimize / evaluate
-        python -m main_6_4_orch_feat_comp --mode train    --symbols XAUUSD --base_tf H1 --timeframes H1 H4 D1
-        python -m main_6_4_orch_feat_comp --mode backtest --symbols EURUSD --base_tf M1 --timeframes M1 M5 H1 --start 2024-01-01 --end 2024-12-31
-    
-    -Download
-        python -m main_6_4_orch_feat_comp --download --symbols EURUSD --timeframes M1 M5 --lookback 5000
-    - Health check
-        python -m main_6_4_orch_feat_comp --health
+    نسخه‌ای که الان در اختیار داریم فقط Data و Feature و Observation را دارد.
+    در فایل فعلی نیز خروجی Observation هنوز به listener ها تحویل می‌شود و
+    بعد از آن subsystem های معاملاتی در این فایل هنوز وجود ندارند.
+""" 
+# ============================================================================= end
 
-    اجرا همراه با آدرس دهی فایل کانفیگ:
-        python -m main_6_4_orch_feat_comp --config [path to config.yaml] --mode live --symbols EURUSD --timeframes M5
-        python -m main_6_4_orch_feat_comp --config [path to config.yaml] --mode live --symbols EURUSD XAUUSD BITCOIN --timeframes M1 M5 H1
-    
-    ===========================================================================
-    برای آینده:
-    -----------
-    Main / Root Orchestrator
-        │
-        ├── Config
-        ├── Data
-        ├── Features
-        ├── Observation
-        ├── Machine Learning / Symbol-Agent
-        ├── Meta-Agent
-        ├── Risk Management
-        ├── Order / Execution
-        ├── Position Management
-        ├── Broker / MT5
-        └── Monitoring / Lifecycle
-        
-        نسخه‌ای که الان در اختیار داریم فقط Data و Feature و Observation را دارد.
-        در فایل فعلی نیز خروجی Observation هنوز به listener ها تحویل می‌شود و
-        بعد از آن subsystem های معاملاتی در این فایل هنوز وجود ندارند.
-    """
-    pass
 
 # main_6_4_orchestrator_feature_compatible.py
 # main_6_5.py ==> After deleting feature_bootstrap.py
@@ -259,6 +259,7 @@ class BotOrchestrator:
         self._engine_thread: Optional[threading.Thread] = None
         self._handler_threads: Dict[str, threading.Thread] = {}
         self._engine_error: Optional[Exception] = None
+        self._handler_errors: Dict[str, Exception] = {}
 
         # حداکثر زمان انتظار برای پایان همه threadها
         self._thread_join_timeout_sec = 5.0
@@ -517,6 +518,30 @@ class BotOrchestrator:
             self._stop_event.set()
     # --------------------------------- block-2 start
 
+
+    # --------------------------------- block-3 start
+    def _run_handler_thread(
+        self,
+        symbol: str,
+        handler: DataHandler,
+    ) -> None:
+        """Run one DataHandler and forward unexpected failures to the orchestrator."""
+        try:
+            handler.start_consuming()
+
+        except Exception as exc:
+            self._handler_errors[symbol] = exc
+
+            self.logger.exception(
+                "DataHandler thread failed for symbol=%s: %s",
+                symbol,
+                exc,
+            )
+
+            self._stop_event.set()
+    # --------------------------------- block-3 start
+
+
     def start_live(
         self,
         symbols: List[str],
@@ -544,7 +569,9 @@ class BotOrchestrator:
         # ).start()
 
         # ----------------------------- added-1 start
+        self._stop_event.clear()
         self._engine_error = None
+        self._handler_errors.clear()
 
         self._engine_thread = threading.Thread(
             target=self._run_engine_thread,
@@ -558,7 +585,8 @@ class BotOrchestrator:
 
         for symbol, handler in self.data_handlers.items():
             thread = threading.Thread(
-                target=handler.start_consuming,
+                target=self._run_handler_thread,
+                args=(symbol, handler),
                 daemon=True,
                 name=f"DataHandler-{symbol}",
             )
@@ -566,13 +594,6 @@ class BotOrchestrator:
             thread.start()
 
         # ----------------------------- added-1 end
-
-        for symbol, handler in self.data_handlers.items():
-            threading.Thread(
-                target=handler.start_consuming,
-                daemon=True,
-                name=f"DataHandler-{symbol}",
-            ).start()
 
         self.logger.info(
             "Live started for symbols=%s, timeframes=%s",
@@ -671,6 +692,21 @@ class BotOrchestrator:
                     "Press Ctrl+C to stop."
                 )
                 self._stop_event.wait()
+
+                # ---------------------------------------------------------------
+                # بررسی خطاهای threadهای DataHandler
+                # ---------------------------------------------------------------
+                handler_errors = dict(self._handler_errors)
+
+                if handler_errors:
+                    details = "; ".join(
+                        f"{symbol}: {error}"
+                        for symbol, error in handler_errors.items()
+                    )
+
+                    raise RuntimeError(
+                        f"DataHandler thread failure(s): {details}"
+                    ) from next(iter(handler_errors.values()))
 
                 # ---------------------------------------------------------------
                 # بررسی نتیجهٔ اجرای thread مربوط به MarketDataEngine
