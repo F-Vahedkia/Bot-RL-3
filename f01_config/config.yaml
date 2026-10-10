@@ -120,7 +120,7 @@ features:
   symbols:
     # -----------------------
     COMMON:
-      symbols: [BITCOIN] #, EURUSD, XAUUSD]
+      symbols: [BITCOIN, ETHEREUM, EURUSD, XAUUSD]
 
       indicators:
         - sma(column='close',period=8)@M1      # Simple Moving Average
@@ -348,6 +348,12 @@ features:
 
         # - hma(column='close', period=20)@M1     # Hull Moving Average
         # - hma(column='close', period=20)@M2     # Hull Moving Average
+    # -----------------------
+    ETHEREUM:
+      # candles: [M1, M2]
+      indicators:
+        # - sma(column='close',period=8)@M1      # Simple Moving Average
+        # - sma(column='close',period=4)@M2      # Simple Moving Average
   # ----------------------------------------
   candles:
     required:
@@ -361,6 +367,9 @@ features:
       BITCOIN:
         M1: 10
         H2: 20
+      ETHEREUM:
+        M2: 2
+        M3: 2
     namse:
       - high
       - low
