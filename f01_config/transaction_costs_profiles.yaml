@@ -1,0 +1,168 @@
+# Commission profiles are intentionally kept outside the main config.yaml.
+#
+# IMPORTANT:
+# - active_broker=default preserves the existing global simulation commission.
+# - Vendor schedules below are examples only and remain unverified/inactive.
+# - Verify the exact account type, symbol coverage, commission currency and
+#   whether the published fee is per side or round-turn before selecting them.
+# - strict_symbols prevents a missing instrument schedule from silently using
+#   a potentially incorrect fee schedule.
+
+transaction_costs:
+  simulation:
+    commission_profiles:
+      active_broker: default
+      active_account_type: default
+
+      brokers:
+        alpari:
+          accounts:
+            standard:
+              strict_symbols: true
+              symbols:
+                EURUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                GBPUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                USDJPY:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                USDCHF:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                USDCAD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                AUDUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                NZDUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+
+            pro_ecn_mt5:
+              strict_symbols: true
+              symbols:
+                EURUSD:
+                  basis: per_lot
+                  rate: 2.5
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: round_turn
+                  notional_basis: base
+                  verified: false
+                XAUUSD:
+                  basis: percent_notional
+                  rate: 0.000018
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: round_turn
+                  notional_basis: quote
+                  verified: false
+                BITCOIN:
+                  basis: percent_notional
+                  rate: 0.0003
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+
+        pepperstone:
+          accounts:
+            standard:
+              strict_symbols: true
+              symbols:
+                EURUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                GBPUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+                XAUUSD:
+                  basis: fixed
+                  rate: 0.0
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+
+            razor:
+              strict_symbols: true
+              symbols:
+                EURUSD:
+                  basis: per_lot
+                  rate: 3.5
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: base
+                  verified: false
+                GBPUSD:
+                  basis: per_lot
+                  rate: 3.5
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: base
+                  verified: false
+                XAUUSD:
+                  basis: per_lot
+                  rate: 3.5
+                  currency: USD
+                  minimum: 0.0
+                  billing_basis: per_side
+                  notional_basis: quote
+                  verified: false
+
+# The global default remains in f01_config/config.yaml under
+# transaction_costs.simulation.commission. It is used when the selector is
+# default and is represented in code as an unverified legacy profile.

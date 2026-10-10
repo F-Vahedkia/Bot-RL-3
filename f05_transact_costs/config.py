@@ -10,6 +10,9 @@ from collections.abc import Mapping
 import math
 from typing import Any
 
+from .commission_profiles import CommissionProfileCatalog
+from .contracts import CommissionModel
+
 # =============================================================================
 # Functions
 # =============================================================================
@@ -80,7 +83,8 @@ class SimulationConfig:
     additional_fee_currency: str
     charge_on_entry: bool
     charge_on_exit: bool
-
+    commission_profiles: CommissionProfileCatalog | None = None
+    
 
 @dataclass(frozen=True, slots=True)
 class LiveConfig:
@@ -161,6 +165,19 @@ class TransactionCostConfig:
         commission_currency = _currency(_required(commission, "currency", "transaction_costs.simulation.commission"), "simulation.commission.currency")
         if basis == "percent_notional" and rate > 1.0:
             raise ValueError("simulation percent_notional commission rate must be <= 1")
+
+        # -------- ساخت کاتالوگ ------------------------------------------------------------------
+        legacy_commission_model = CommissionModel(
+            basis=basis,
+            rate=rate,
+            currency=commission_currency,
+            minimum=minimum,
+        )
+        commission_profiles = CommissionProfileCatalog.from_mapping(
+            sim.get("commission_profiles", {}),
+            fallback_model=legacy_commission_model,
+        )
+        # -----------------------------------------------------------------------------------------
 
         additional_fee = _float(_required(fee, "value", "transaction_costs.simulation.additional_fee"), "simulation.additional_fee.value")
         fee_currency = _currency(_required(fee, "currency", "transaction_costs.simulation.additional_fee"), "simulation.additional_fee.currency")
@@ -286,6 +303,7 @@ class TransactionCostConfig:
                 additional_fee_currency=fee_currency,
                 charge_on_entry=charge_on_entry,
                 charge_on_exit=charge_on_exit,
+                commission_profiles=commission_profiles,
             ),
             live=LiveConfig(
                 spread_source="broker",

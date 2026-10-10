@@ -399,7 +399,7 @@ class ConfigLoader:
             "monitoring", "safety", "cicd", "scripts", "secrets", "per_symbol_overrides",
             
             "account_currency", "symbol_specs",   # for symbol_specs.yaml
-            "extensions",                         # for custom extensions
+            "extensions", "transaction_costs",    # custom extensions / transaction-cost policy
         }
         # کلیدهای ناشناختهٔ سطح-۱
         # unknown = [k for k in cfg.keys() if k not in allowed_top and k not in ("extends","bases")]   # old 05-04-20 05/04/20

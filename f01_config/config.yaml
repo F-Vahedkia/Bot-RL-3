@@ -22,6 +22,7 @@ config_layers:
   # (==> THIS CONFIG FILE)
   overlays:
   - f01_config/symbol_specs.yaml       # بیشترین اهمیت- بیش از حتی همین فایل کانفیگ(config.yaml) 
+  - f01_config/transaction_costs_profiles.yaml  # broker/account/symbol commission schedules
   # - f01_config/symbol_specs_22.yaml
   # - f01_config/symbol_specs_33.yaml
 

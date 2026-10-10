@@ -25,6 +25,8 @@ from .providers import (
     MappingInstrumentResolver,
 )
 from .round_trip import RoundTripCostEstimate, RoundTripCostEstimator
+from .commission_profiles import CommissionProfile, CommissionProfileCatalog
+
 
 __all__ = [
     "AccountingConfig", "BrokerQuoteProvider", "CommissionBasis", "CommissionModel",
@@ -37,3 +39,5 @@ __all__ = [
     "TransactionCostCalculator", "TransactionCostConfig", "TransactionCostLedger",
     "TransactionCostRequest", "build_components",
 ]
+__all__ += ["CommissionProfile", "CommissionProfileCatalog"]
+
