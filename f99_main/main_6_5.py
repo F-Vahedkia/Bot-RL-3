@@ -563,7 +563,29 @@ class BotOrchestrator:
         poll_interval: float = 2.0,
     ) -> None:
         """شروع حالت live/paper/shadow."""
+        if self._running:
+            raise RuntimeError("BotOrchestrator is already running.")
+
+        active_threads = [
+            thread
+            for thread in (
+                [self._engine_thread]
+                + list(self._handler_threads.values())
+            )
+            if thread is not None and thread.is_alive()
+        ]
+
+        if active_threads:
+            active_names = ", ".join(
+                thread.name for thread in active_threads
+            )
+            raise RuntimeError(
+                "Cannot start live mode while previous thread(s) "
+                f"are still alive: {active_names}"
+            )
+
         symbols = list(symbols)
+
         self._ensure_feature_pipelines(symbols)
 
         warmups_dicts = self.cfg.get("__warmups_dicts", {})
@@ -587,14 +609,7 @@ class BotOrchestrator:
         self._engine_error = None
         self._handler_errors.clear()
 
-        self._engine_thread = threading.Thread(
-            target=self._run_engine_thread,
-            args=(warmups_dicts, poll_interval),
-            daemon=True,
-            name="MarketDataEngine",
-        )
-        self._engine_thread.start()
-
+        # 1. ابتدا مصرف‌کننده‌های داده را راه‌اندازی کن.
         self._handler_threads.clear()
 
         for symbol, handler in self.data_handlers.items():
@@ -606,6 +621,15 @@ class BotOrchestrator:
             )
             self._handler_threads[symbol] = thread
             thread.start()
+
+        # 2. پس از شروع مصرف‌کننده‌ها، موتور داده را راه‌اندازی کن.
+        self._engine_thread = threading.Thread(
+            target=self._run_engine_thread,
+            args=(warmups_dicts, poll_interval),
+            daemon=True,
+            name="MarketDataEngine",
+        )
+        self._engine_thread.start()
 
         # ----------------------------- added-1 end
 

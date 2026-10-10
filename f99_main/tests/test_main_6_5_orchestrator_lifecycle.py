@@ -93,10 +93,18 @@ def test_start_unblocks_and_propagates_mt5_failure_to_caller():
     failure = RuntimeError("MT5 connection failed")
     engine = Mock()
     engine.start.side_effect = failure
+
     handler = Mock()
-    handler.start_consuming.return_value = None
+    handler_release = threading.Event()
+
+    def blocking_handler_consume():
+        handler_release.wait()
+
+    handler.start_consuming.side_effect = blocking_handler_consume
+    handler.stop_consuming.side_effect = handler_release.set
 
     bot = _make_live_bot(engine, handler)
+
     result: dict = {}
     caller = threading.Thread(
         target=_call_and_capture,
@@ -110,6 +118,7 @@ def test_start_unblocks_and_propagates_mt5_failure_to_caller():
     if caller.is_alive():
         # Prevent a broken implementation from leaving the test process blocked.
         bot._stop_event.set()
+        handler_release.set()
         caller.join(timeout=1.0)
 
     assert not caller.is_alive(), "BotOrchestrator.start() did not unblock after engine failure"
@@ -170,6 +179,107 @@ def test_start_live_retains_and_stop_joins_engine_and_handler_threads():
     engine.start.assert_called_once_with({"EURUSD": {"M1": 10}}, 0.01)
     engine.stop.assert_called_once()
     handler.start_consuming.assert_called_once()
+    handler.stop_consuming.assert_called_once()
+
+
+def test_start_live_starts_data_handlers_before_engine(monkeypatch):
+    """DataHandler threads must be started before the MarketDataEngine thread.
+
+    این تست ترتیب فراخوانی Thread.start() را ثبت می‌کند؛
+    بنابراین صرفاً به زمان‌بندی تصادفی سیستم‌عامل وابسته نیست.
+    """
+    release = threading.Event()
+    engine_entered = threading.Event()
+    handler_entered = threading.Event()
+
+    engine = Mock()
+
+    def blocking_engine_start(*_args, **_kwargs):
+        engine_entered.set()
+        release.wait()
+
+    engine.start.side_effect = blocking_engine_start
+    engine.stop.side_effect = release.set
+
+    handler = Mock()
+
+    def blocking_handler_consume():
+        handler_entered.set()
+        release.wait()
+
+    handler.start_consuming.side_effect = blocking_handler_consume
+    handler.stop_consuming.side_effect = release.set
+
+    bot = _make_live_bot(engine, handler)
+
+    start_order = []
+    original_start = threading.Thread.start
+
+    def tracked_start(thread, *args, **kwargs):
+        if thread.name in {"DataHandler-EURUSD", "MarketDataEngine"}:
+            start_order.append(thread.name)
+        return original_start(thread, *args, **kwargs)
+
+    monkeypatch.setattr(threading.Thread, "start", tracked_start)
+
+    try:
+        bot.start_live(
+            symbols=["EURUSD"],
+            timeframes=["M1"],
+            poll_interval=0.01,
+        )
+
+        assert start_order == [
+            "DataHandler-EURUSD",
+            "MarketDataEngine",
+        ]
+        assert handler_entered.wait(timeout=1.0)
+        assert engine_entered.wait(timeout=1.0)
+
+    finally:
+        bot.stop()
+
+    assert not bot._handler_threads["EURUSD"].is_alive()
+    assert bot._engine_thread is not None
+    assert not bot._engine_thread.is_alive()
+    handler.start_consuming.assert_called_once_with()
+    engine.start.assert_called_once_with(
+        {"EURUSD": {"M1": 10}},
+        0.01,
+    )
+
+
+def test_start_live_rejects_duplicate_start_without_spawning_threads():
+    """A second start_live() call must not create duplicate worker threads."""
+    engine = Mock()
+    handler = Mock()
+
+    bot = _make_live_bot(engine, handler)
+
+    bot.start_live(
+        symbols=["EURUSD"],
+        timeframes=["M1"],
+        poll_interval=0.01,
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="BotOrchestrator is already running",
+    ):
+        bot.start_live(
+            symbols=["EURUSD"],
+            timeframes=["M1"],
+            poll_interval=0.01,
+        )
+
+    bot.stop()
+
+    engine.start.assert_called_once_with(
+        {"EURUSD": {"M1": 10}},
+        0.01,
+    )
+    handler.start_consuming.assert_called_once_with()
+    engine.stop.assert_called_once()
     handler.stop_consuming.assert_called_once()
 
 
