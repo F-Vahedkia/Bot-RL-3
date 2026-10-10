@@ -539,6 +539,20 @@ class BotOrchestrator:
             )
 
             self._stop_event.set()
+
+        else:
+            # خروج عادی فقط در صورت درخواست توقف قابل قبول است.
+            # هنگام توقف عمدی، این خطا ثبت نمی‌شود.
+            if self._running and not self._stop_event.is_set():
+                error = RuntimeError(
+                    f"DataHandler thread exited unexpectedly for symbol={symbol}."
+                )
+
+                self._handler_errors[symbol] = error
+
+                self.logger.error("%s", error)
+                self._stop_event.set()
+
     # --------------------------------- block-3 start
 
 
@@ -717,12 +731,12 @@ class BotOrchestrator:
                     ) from self._engine_error
 
                 # اگر موتور بدون درخواست توقف خاتمه یافته باشد،
-                # اجزای زنده را نیز متوقف کن.
+                # خطا باید به فراخواننده منتقل شود.
                 if self._running:
-                    self.logger.error(
-                        "MarketDataEngine thread exited without a stop request."
+                    raise RuntimeError(
+                        "MarketDataEngine exited unexpectedly "
+                        "while the orchestrator was running."
                     )
-                    self.stop()
                 # --------------------------------------------------------------- end
 
             elif self.mode in ["train", "backtest", "optimize", "evaluate"]:

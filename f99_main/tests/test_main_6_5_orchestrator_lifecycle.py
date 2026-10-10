@@ -173,6 +173,107 @@ def test_start_live_retains_and_stop_joins_engine_and_handler_threads():
     handler.stop_consuming.assert_called_once()
 
 
+def test_handler_thread_unexpected_normal_exit_is_reported():
+    """An unexpected normal return from DataHandler must stop the orchestrator wait.
+
+    این تست بررسی می‌کند که اگر start_consuming() بدون exception تمام شود،
+    در حالی که ربات هنوز فعال است، خطا ثبت شود و _stop_event آزاد شود.
+    """
+    handler = Mock()
+    handler.start_consuming.return_value = None
+
+    bot = BotOrchestrator(config_path=None, mode="live")
+    bot._running = True
+
+    # Run the wrapper directly; the mocked handler returns immediately.
+    bot._run_handler_thread("EURUSD", handler)
+
+    error = bot._handler_errors.get("EURUSD")
+
+    assert isinstance(error, RuntimeError)
+    assert str(error) == (
+        "DataHandler thread exited unexpectedly for symbol=EURUSD."
+    )
+    assert bot._stop_event.is_set()
+    handler.start_consuming.assert_called_once_with()
+
+
+def test_start_propagates_unexpected_normal_engine_exit():
+    """A normal engine return while running must trigger shutdown and raise.
+
+    این تست از مسیر واقعی BotOrchestrator.start() عبور می‌کند.
+    موتور بدون خطا برمی‌گردد، اما چون ارکستراتور هنوز در وضعیت اجراست،
+    باید خطای مناسب به فراخواننده منتقل و shutdown اجرا شود.
+    """
+    handler_entered = threading.Event()
+    release_handler = threading.Event()
+
+    engine = Mock()
+
+    def normal_engine_start(*_args, **_kwargs):
+        # Ensure the handler has actually entered its consuming loop
+        # before the engine exits normally.
+        if not handler_entered.wait(timeout=1.5):
+            raise AssertionError(
+                "DataHandler did not enter start_consuming() in time."
+            )
+
+        # Normal return: no exception is raised by the engine.
+
+    engine.start.side_effect = normal_engine_start
+
+    handler = Mock()
+
+    def blocking_handler_consume():
+        handler_entered.set()
+        release_handler.wait()
+
+    handler.start_consuming.side_effect = blocking_handler_consume
+    handler.stop_consuming.side_effect = release_handler.set
+
+    bot = _make_live_bot(engine, handler)
+
+    result: dict = {}
+    caller = threading.Thread(
+        target=_call_and_capture,
+        args=(lambda: bot.start(_cli_args()), result),
+        name="Test-NormalEngineExit",
+        daemon=True,
+    )
+
+    caller.start()
+    caller.join(timeout=3.0)
+
+    if caller.is_alive():
+        # Cleanup safeguard if a regression leaves start() blocked.
+        bot._stop_event.set()
+        release_handler.set()
+        caller.join(timeout=1.0)
+
+    assert not caller.is_alive(), (
+        "BotOrchestrator.start() did not finish after normal engine exit."
+    )
+
+    error = result.get("exception")
+
+    assert isinstance(error, RuntimeError)
+    assert str(error) == (
+        "MarketDataEngine exited unexpectedly "
+        "while the orchestrator was running."
+    )
+
+    assert bot._running is False
+    assert bot._stop_event.is_set()
+
+    engine.start.assert_called_once_with(
+        {"EURUSD": {"M1": 10}},
+        0.01,
+    )
+    engine.stop.assert_called_once()
+    handler.start_consuming.assert_called_once_with()
+    handler.stop_consuming.assert_called_once()
+
+
 def test_stop_returns_and_logs_when_thread_exceeds_join_timeout(caplog):
     """Scenario 4: a stuck worker cannot make stop() block indefinitely."""
     release_stuck_thread = threading.Event()
