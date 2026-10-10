@@ -120,7 +120,7 @@ features:
   symbols:
     # -----------------------
     COMMON:
-      symbols: [BITCOIN, EURUSD, XAUUSD]
+      symbols: [BITCOIN] #, EURUSD, XAUUSD]
 
       indicators:
         - sma(column='close',period=8)@M1      # Simple Moving Average

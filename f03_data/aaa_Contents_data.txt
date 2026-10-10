@@ -14,8 +14,9 @@
 
 فایل های اصلی
 -----------------------
-data_handler_F_3.py
+data_handler_G.py
 data_layer_functions.py
+instrument_specs.py
 live_market_engine.py
 mt5_connector.py
 mt5_data_loader_E.py
@@ -24,6 +25,10 @@ mtf_dataset.py
 
 فایل های تستر:
 -----------------------
+test_instrument_specs.py
+test_8_engine_lifecycle.py
+
+
 tests_data_handler/
     mtf_dataset_tester.py
     test_live_datahandler_A.py
@@ -39,6 +44,12 @@ tests_live_market_engine/
     test_5_full_pipeline.py
     test_6_live_market_engine_integrity_1.py
     test_7_live_data_full_path_integrity.py
+
+===================================================================================================
+تست های موجود در ریشه پوشه f03_data
+===================================================================================================
+pytest -v -s f03_data/test_instrument_specs.py      ---> ALL PASSED = 69
+pytest -v -s f03_data/test_8_engine_lifecycle.py    ---> ALL PASSED = 4
 
 ===================================================================================================
 فایل های تستر موجود در پوشه tests_data_handler
@@ -67,6 +78,8 @@ f03_data/tests_live_market_engine/test_2_candle_detector.py `
 f03_data/tests_live_market_engine/test_3_mt5_stream_worker.py `
 f03_data/tests_live_market_engine/test_4_market_data_engine.py `
 f03_data/tests_live_market_engine/test_5_full_pipeline.py `
+
+
 
 تسترهای live
 --------------------------------------- ALL RUNs IS OK

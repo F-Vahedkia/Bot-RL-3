@@ -430,6 +430,7 @@ class BotOrchestrator:
             self.logger.info("MarketDataEngine initialized (live mode)")
 
             self._ensure_feature_pipelines(symbols)
+            event_bus = self.engine.get_event_bus()
 
             for symbol in symbols:
                 handler = DataHandler(
@@ -437,7 +438,7 @@ class BotOrchestrator:
                     symbol=symbol,
                     event_bus=None,
                 )
-                self.engine.attach_data_handler(handler)
+                handler.subscribe_to_event_bus(event_bus)
                 handler.set_data_callback(self._on_data_updated)
 
                 self.data_handlers[symbol] = handler

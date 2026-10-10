@@ -877,8 +877,17 @@ def main() -> int:
     # 5. Start real Live MarketDataEngine
     # -----------------------------------------------------------------
 
-    engine_thread = threading.Thread(
-        target=engine.start(cfg["__warmups_dicts"]),
+    # engine_thread = threading.Thread(                   # commented at 1405/07/18
+    #     target=engine.start(cfg["__warmups_dicts"]),
+    #     kwargs={
+    #         "poll_interval_sec": POLL_INTERVAL_SEC,
+    #     },
+    #     daemon=True,
+    #     name="test-live-market-engine",
+    # )
+    engine_thread = threading.Thread(                   # added at 1405/07/18
+        target=engine.start,
+        args=(cfg["__warmups_dicts"],),
         kwargs={
             "poll_interval_sec": POLL_INTERVAL_SEC,
         },

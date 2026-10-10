@@ -1,6 +1,6 @@
 # f03_data/test_instrument_specs.py
 #
-# Run: pytesy -v -s f03_data/test_instrument_specs.py
+# Run: pytest -v -s f03_data/test_instrument_specs.py
 #      pytest -q f03_data/test_instrument_specs.py
 
 """
@@ -21,6 +21,10 @@ The tests intentionally use the real repository snapshot artifact for the
 happy-path contract validation, then use in-memory copies for negative tests.
 """
 
+# =============================================================================
+# Imports
+# =============================================================================
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -38,9 +42,9 @@ from .instrument_specs import (
     resolve_instrument_specs,
 )
 
-# ============================================================================
+# =============================================================================
 # ????????????
-# ============================================================================
+# ============================================================================= DELETED
 
 def _snapshot_for_canonical_resolution(snapshot: dict) -> dict:
     """
@@ -83,9 +87,9 @@ def _snapshot_for_canonical_resolution(snapshot: dict) -> dict:
     return normalized
 
 
-# ============================================================================
+# =============================================================================
 # Paths / fixtures
-# ============================================================================
+# =============================================================================
 
 SNAPSHOT_PATH = Path(__file__).with_name("specs_snapshot.yaml")
 
@@ -112,9 +116,9 @@ def snapshot() -> dict:
     return value
 
 
-# ============================================================================
+# =============================================================================
 # Basic snapshot structure
-# ============================================================================
+# =============================================================================
 
 def test_snapshot_has_required_top_level_structure(snapshot: dict) -> None:
     assert isinstance(snapshot.get("meta"), dict)
@@ -164,9 +168,9 @@ def test_snapshot_has_timezone_aware_as_of(snapshot: dict) -> None:
     assert parsed.astimezone(timezone.utc).tzinfo is not None
 
 
-# ============================================================================
+# =============================================================================
 # Full snapshot -> canonical catalog
-# ============================================================================
+# =============================================================================
 
 def test_full_snapshot_resolves_to_canonical_catalog(snapshot: dict) -> None:
     catalog = resolve_instrument_specs(snapshot)
@@ -191,9 +195,9 @@ def test_resolved_catalog_symbols_are_normalized(snapshot: dict) -> None:
         assert spec.symbol == symbol
 
 
-# ============================================================================
+# =============================================================================
 # Representative real instruments from the current snapshot
-# ============================================================================
+# =============================================================================
 
 def test_eurusd_canonical_contract(snapshot: dict) -> None:
     spec = resolve_instrument_specs(
@@ -336,9 +340,9 @@ def test_xauusd_uses_point_as_project_cost_unit(snapshot: dict) -> None:
     assert spec.tick_value_currency == "USD"
 
 
-# ============================================================================
+# =============================================================================
 # Derived values
-# ============================================================================
+# =============================================================================
 
 @pytest.mark.parametrize(
     "symbol",
@@ -407,9 +411,9 @@ def test_pip_value_is_derived_from_canonical_unit(
     )
 
 
-# ============================================================================
+# =============================================================================
 # Provenance and normalization
-# ============================================================================
+# =============================================================================
 
 def test_canonical_spec_preserves_snapshot_provenance(snapshot: dict) -> None:
     catalog = resolve_instrument_specs(
@@ -465,9 +469,9 @@ def test_snapshot_raw_fields_are_promoted_into_canonical_contract(
     assert spec.currency_margin == raw["currency_margin"]
 
 
-# ============================================================================
+# =============================================================================
 # Required-field enforcement
-# ============================================================================
+# =============================================================================
 
 @pytest.mark.parametrize(
     "field",
@@ -546,9 +550,9 @@ def test_duplicate_requested_symbols_are_rejected(snapshot: dict) -> None:
         )
 
 
-# ============================================================================
+# =============================================================================
 # No silent inference from missing raw directional fields
-# ============================================================================
+# =============================================================================
 
 def test_directional_tick_values_are_not_invented_when_raw_fields_missing(
     snapshot: dict,
@@ -572,9 +576,9 @@ def test_directional_tick_values_are_not_invented_when_raw_fields_missing(
     assert math.isclose(spec.tick_value, 1.0)
 
 
-# ============================================================================
+# =============================================================================
 # Type / numeric validation
-# ============================================================================
+# =============================================================================
 
 @pytest.mark.parametrize(
     ("field", "value"),
@@ -629,9 +633,9 @@ def test_nonfinite_numeric_field_is_rejected(
         )
 
 
-# ============================================================================
+# =============================================================================
 # Broker constraint derivations
-# ============================================================================
+# =============================================================================
 
 def test_stop_distance_is_derived_from_native_point_and_stop_level(
     snapshot: dict,
@@ -671,9 +675,9 @@ def test_freeze_distance_is_derived_from_native_point_and_freeze_level(
     )
 
 
-# ============================================================================
+# =============================================================================
 # Instrument classification
-# ============================================================================
+# =============================================================================
 
 def test_forex_classification_uses_native_calc_mode(
     snapshot: dict,
@@ -698,9 +702,9 @@ def test_forex_classification_uses_native_calc_mode(
     assert xauusd.is_forex is False
 
 
-# ============================================================================
+# =============================================================================
 # Mode neutrality
-# ============================================================================
+# =============================================================================
 
 @pytest.mark.parametrize(
     "execution_mode",
@@ -740,9 +744,9 @@ def test_canonical_instrument_contract_is_execution_mode_neutral(
     assert live_or_training_spec == another_consumer_spec
 
 
-# ============================================================================
+# =============================================================================
 # Immutability
-# ============================================================================
+# =============================================================================
 
 def test_canonical_instrument_is_immutable(snapshot: dict) -> None:
     spec = resolve_instrument_specs(
@@ -754,9 +758,9 @@ def test_canonical_instrument_is_immutable(snapshot: dict) -> None:
         spec.symbol = "GBPUSD"  # type: ignore[misc]
 
 
-# ============================================================================
+# =============================================================================
 # Direct constructor validation
-# ============================================================================
+# =============================================================================
 
 def test_direct_constructor_rejects_invalid_symbol() -> None:
     with pytest.raises(ValueError):
@@ -791,9 +795,9 @@ def test_direct_constructor_rejects_invalid_tick_size() -> None:
         )
 
 
-# ============================================================================
+# =============================================================================
 # Snapshot coverage sanity
-# ============================================================================
+# =============================================================================
 
 def test_current_snapshot_contains_expected_core_instruments(
     snapshot: dict,
@@ -815,3 +819,5 @@ def test_current_snapshot_contains_expected_core_instruments(
     }
 
     assert expected.issubset(actual)
+
+# ============================================================================= END

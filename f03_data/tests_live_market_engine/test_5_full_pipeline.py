@@ -131,8 +131,9 @@ class TestFullPipeline:
 
         MockWorker.assert_called_once()
         worker.start.assert_called_once()
-        assert engine._running is True
-
+        
+        # Mock worker.start immediately returns; the engine must then be stopped.
+        assert engine._running is False
 
     # =========================================================================
     # 5

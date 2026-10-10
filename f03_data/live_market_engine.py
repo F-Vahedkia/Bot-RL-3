@@ -68,13 +68,13 @@ DataFrameهای موجود در all_dfs شامل کندل‌های بسته‌ش
 
 from __future__ import annotations
 
-import time
+# import time
 import logging
 import pandas as pd
 import uuid
 from dataclasses import dataclass
 from queue import Queue, Full, Empty
-from threading import Lock
+from threading import Event, Lock
 from typing import Any, Dict, Optional
 # ---------------------------
 from datetime import datetime, timezone
@@ -462,9 +462,10 @@ class MT5StreamWorker:
         # ------------------------------------------------- end
         self.detector = CandleDetector(self.broker_timezone)
         self._running = False
+        self._stop_event = Event()
        
     # -------------------------------------------------------- OK
-    def start(self) -> None:
+    def start_old1(self) -> None:
         """
         این متد اتصال به متاتریدر را راه اندازی میکند و 
         حلقه اصلی را شروع میکند.
@@ -480,6 +481,44 @@ class MT5StreamWorker:
             self.connector.shutdown()
             logger.info("MT5StreamWorker stopped")
 
+    # -----------------------
+    def start(self) -> None:
+        """
+        شروع worker با پشتیبانی از درخواست توقف هنگام راه‌اندازی.
+
+        این متد blocking است و تا پایان حلقهٔ پایش بازار برنمی‌گردد.
+        """
+        # اگر قبل از شروع، درخواست توقف ثبت شده باشد،
+        # هیچ اتصال جدیدی برقرار نکن.
+        if self._stop_event.is_set():
+            logger.info(
+                "MT5StreamWorker start skipped: stop already requested"
+            )
+            return
+
+        try:
+            if not self.connector.initialize():
+                if self._stop_event.is_set():
+                    return
+                raise RuntimeError("MT5 connection failed")
+
+            # ممکن است درخواست توقف هنگام initialize() رسیده باشد.
+            if self._stop_event.is_set():
+                return
+
+            self._running = True
+            logger.info("MT5StreamWorker started")
+
+            self._loop()
+
+        finally:
+            # این پرچم باید حتی پس از خطا نیز وضعیت نهایی را نشان دهد.
+            self._running = False
+
+            # shutdown در یک مسیر پاک‌سازی متمرکز انجام می‌شود.
+            self.connector.shutdown()
+            logger.info("MT5StreamWorker stopped")
+
     # -------------------------------------------------------- OK
     def _loop(self) -> None:
         """
@@ -491,10 +530,15 @@ class MT5StreamWorker:
         logger.debug("===> start loop at streamworker")
         logger.debug(f"{self.symbols}")
         
-        while self._running:
+        # while self._running:                                 # Commented at 1405/07/18
+        while self._running and not self._stop_event.is_set(): # Added at 1405/07/18
             # ---------------------------------/
             for symbol in self.symbols:
+                if self._stop_event.is_set():    #  Added at 1405/07/18
+                    break                        #  Added at 1405/07/18
                 for tf in self.timeframes_dict[symbol]:
+                    if self._stop_event.is_set():    #  Added at 1405/07/18
+                        break                        #  Added at 1405/07/18
                     # -------------------------//
                     try:
                         df = self._fetch_closed(symbol, tf, 3)
@@ -516,7 +560,8 @@ class MT5StreamWorker:
                         logger.exception("Stream error %s/%s: %s", symbol, tf, ex)
                     # -------------------------//
             # ---------------------------------/
-            time.sleep(self.poll_interval_sec)
+            # time.sleep(self.poll_interval_sec)           # Commented at 1405/07/18
+            self._stop_event.wait(self.poll_interval_sec)  # Added at 1405/07/18
 
     # -------------------------------------------------------- OK
     def _fetch_closed(self, symbol: str, timeframe: str, num_candles: Optional[int] = None) -> pd.DataFrame:
@@ -555,10 +600,18 @@ class MT5StreamWorker:
         return all_dfs
     
     # -------------------------------------------------------- OK=
-    def stop(self) -> None:
+    def stop_old1(self) -> None:
         """
         این متد، چوب لای چرخ حلقه اصلی میکند
         """
+        self._running = False
+
+    # -----------------------
+    def stop(self) -> None:
+        """
+        درخواست توقف worker؛ حتی اگر هنوز وارد حلقه نشده باشد.
+        """
+        self._stop_event.set()
         self._running = False
 
 
@@ -581,9 +634,10 @@ class MarketDataEngine:
         self.worker: Optional[MT5StreamWorker] = None
         self._running: bool = False
         # self.data_handler: Optional[DataHandler] = None
+        self._lifecycle_lock = Lock()
 
     # -------------------------------------------------------- OK
-    def start(
+    def start_old1(
         self,
         warmups_dicts: Dict[str, Dict[str, int]],   #////change_1405/05/20-16:30
         poll_interval_sec: float = 2.0,
@@ -609,8 +663,45 @@ class MarketDataEngine:
         
         logger.info("MarketDataEngine starting...")
 
+    # -----------------------
+    def start(
+        self,
+        warmups_dicts: Dict[str, Dict[str, int]],
+        poll_interval_sec: float = 2.0,
+    ) -> None:
+        """
+        اجرای blocking موتور تا پایان MT5StreamWorker.
+
+        _running از زمان آماده‌سازی worker تا پایان واقعی آن True است.
+        """
+        with self._lifecycle_lock:
+            if self._running:
+                logger.warning("MarketDataEngine already running")
+                return
+
+            worker = MT5StreamWorker(
+                cfg=self.cfg,
+                event_bus=self.event_bus,
+                warmups_dicts=warmups_dicts,
+                poll_interval_sec=poll_interval_sec,
+            )
+
+            self.worker = worker
+            self._running = True
+
+        logger.info("MarketDataEngine starting...")
+
+        try:
+            worker.start()
+        finally:
+            with self._lifecycle_lock:
+                if self.worker is worker:
+                    self._running = False
+
+            logger.info("MarketDataEngine stopped")
+
     # -------------------------------------------------------- OK
-    def stop(self) -> None:
+    def stop_old1(self) -> None:
         """
         - اجرای شیئ self.worker = MT5StreamWorker را متوقف میکند
         - وضعیت اجرای شیئ MarketDataEngine را در حالت False قرار میدهد
@@ -621,6 +712,23 @@ class MarketDataEngine:
         if self.worker:
             self.worker.stop()
         self._running = False
+
+    # -----------------------
+    def stop(self) -> None:
+        """
+        ارسال درخواست توقف به worker؛ مستقل از وضعیت پرچم موتور.
+        """
+        with self._lifecycle_lock:
+            worker = self.worker
+
+            if worker is None:
+                return
+
+            # stop() در worker فقط درخواست توقف را ثبت می‌کند
+            # و نباید تا پایان حلقهٔ blocking منتظر بماند.
+            worker.stop()
+
+        logger.info("MarketDataEngine stop requested")
 
     # -------------------------------------------------------- OK
     def get_event_bus(self) -> EventBus:

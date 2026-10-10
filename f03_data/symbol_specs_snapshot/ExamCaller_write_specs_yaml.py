@@ -10,7 +10,7 @@ Run:
 python -m f03_data.ExamCaller_write_specs_yaml
 '''
 
-from f03_data.symbol_specs_snapshot import write_specs_yaml
+from f03_data.symbol_specs_snapshot.symbol_specs_snapshot import write_specs_yaml
 import argparse
 
 config_path = "f01_config/config.yaml"

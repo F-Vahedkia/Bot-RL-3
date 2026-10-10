@@ -13,6 +13,7 @@ import pytest
 from unittest.mock import Mock, patch
 import sys
 import os
+import threading
 
 sys.path.insert(0, os.path.dirname(__file__) + "/../..")
 
@@ -67,6 +68,33 @@ class TestMarketDataEngine:
 
 
     # ------------------------------------------- Test-4
+    # @patch("f03_data.live_market_engine.MT5StreamWorker")
+    # def test_start_creates_worker_old1(
+    #     self,
+    #     MockWorker,
+    #     mock_config,
+    #     warmups_dicts
+    # ):
+    #     """
+    #     Test start creates MT5StreamWorker
+    #     """
+    #     mock_worker_instance = Mock()
+    #     MockWorker.return_value = mock_worker_instance
+    #     engine = MarketDataEngine(cfg=mock_config)
+    #     engine.start(
+    #         warmups_dicts=warmups_dicts,
+    #         poll_interval_sec=2.0
+    #     )
+    #     MockWorker.assert_called_once_with(
+    #         cfg=mock_config,
+    #         event_bus=engine.event_bus,
+    #         warmups_dicts=warmups_dicts,
+    #         poll_interval_sec=2.0
+    #     )
+    #     mock_worker_instance.start.assert_called_once()
+    #     assert engine._running is True
+
+    # -----------------------
     @patch("f03_data.live_market_engine.MT5StreamWorker")
     def test_start_creates_worker(
         self,
@@ -74,25 +102,58 @@ class TestMarketDataEngine:
         mock_config,
         warmups_dicts
     ):
-        """
-        Test start creates MT5StreamWorker
-        """
+        started = threading.Event()
+        release = threading.Event()
+        errors = []
+
         mock_worker_instance = Mock()
+
+        def blocking_start():
+            started.set()
+            release.wait(timeout=2.0)
+
+        def stop_worker():
+            release.set()
+
+        mock_worker_instance.start.side_effect = blocking_start
+        mock_worker_instance.stop.side_effect = stop_worker
         MockWorker.return_value = mock_worker_instance
+
         engine = MarketDataEngine(cfg=mock_config)
-        engine.start(
-            warmups_dicts=warmups_dicts,
-            poll_interval_sec=2.0
-        )
+
+        def run_engine():
+            try:
+                engine.start(
+                    warmups_dicts=warmups_dicts,
+                    poll_interval_sec=2.0,
+                )
+            except Exception as exc:
+                errors.append(exc)
+
+        thread = threading.Thread(target=run_engine)
+        thread.start()
+
+        assert started.wait(timeout=1.0)
+
         MockWorker.assert_called_once_with(
             cfg=mock_config,
             event_bus=engine.event_bus,
             warmups_dicts=warmups_dicts,
-            poll_interval_sec=2.0
+            poll_interval_sec=2.0,
         )
-        mock_worker_instance.start.assert_called_once()
+
+        # تا وقتی worker در حال اجراست، موتور باید فعال باشد.
         assert engine._running is True
 
+        engine.stop()
+        thread.join(timeout=2.0)
+
+        assert not thread.is_alive()
+        assert errors == []
+        mock_worker_instance.stop.assert_called_once()
+
+        # بعد از پایان worker، موتور باید غیرفعال باشد.
+        assert engine._running is False
 
     # ------------------------------------------- Test-5
     def test_start_when_already_running(
